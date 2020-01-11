@@ -107,17 +107,17 @@ public class DGraph implements graph, Serializable{
 			if (in==null) {
 				in=new HashMap<Integer, edge_data>();
 			}
-				in.put(dest, edge);
-				a=in;
-				NodeData te=(NodeData)v.get(src);
-				te.outgoing.add((NodeData)v.get(dest));
+			in.put(dest, edge);
+			a=in;
+			NodeData te=(NodeData)v.get(src);
+			te.outgoing.add((NodeData)v.get(dest));
 
-				mc++;
+			mc++;
 		}
-				else{
-					System.out.println("One of them no create yet, we can't use connect methods.");
-				}
+		else{
+			System.out.println("One of them no create yet, we can't use connect methods.");
 		}
+	}
 
 	@Override
 	public Collection<node_data> getV() {
@@ -292,7 +292,7 @@ public class DGraph implements graph, Serializable{
 
 			// loop through adjacent vertices
 			for (NodeData next : prev.outgoing){
-				
+
 				// get edge
 				edge_data e = this.getEdge(prev.getKey(), next.getKey());
 				if (e == null)
@@ -325,7 +325,7 @@ public class DGraph implements graph, Serializable{
 	private List<node_data> getShortestPath1(node_data target){
 		List<node_data> path = new ArrayList<node_data>();
 		NodeData tar=(NodeData)target;
-		
+
 		// check for no path found
 		if (tar.minDistance==Integer.MAX_VALUE){
 			path.add(null);
@@ -372,47 +372,47 @@ public class DGraph implements graph, Serializable{
 			return null;
 		}
 		List<node_data> path = getShortestPath1((NodeData)this.getNode(to.getKey()));
-		
+
 		return path;
 	}
-	
+
 	public void init1(String file_name) {
 		DGraph b;
 		try{   
 
-            FileInputStream file = new FileInputStream(file_name); 
+			FileInputStream file = new FileInputStream(file_name); 
 
-            ObjectInputStream in = new ObjectInputStream(file);
+			ObjectInputStream in = new ObjectInputStream(file);
 
-            b = (DGraph)in.readObject();
-this.v=b.v;
-this.ve=b.ve;
-this.Vertex=b.Vertex;
-            in.close();
-            file.close();
+			b = (DGraph)in.readObject();
+			this.v=b.v;
+			this.ve=b.ve;
+			this.Vertex=b.Vertex;
+			in.close();
+			file.close();
 
-        } 
-          
-        catch(IOException ex) { 
-            System.out.println("IOException is caught"); 
-        } 
-          
-        catch(ClassNotFoundException ex) { 
-            System.out.println("ClassNotFoundException is caught"); 
-        }
+		} 
+
+		catch(IOException ex) { 
+			System.out.println("IOException is caught"); 
+		} 
+
+		catch(ClassNotFoundException ex) { 
+			System.out.println("ClassNotFoundException is caught"); 
+		}
 	}
-	
-	public void save(String file_name) {
-		 try {    
-	            FileOutputStream file = new FileOutputStream(file_name);
-	            ObjectOutputStream out = new ObjectOutputStream(file);
-	            out.writeObject(this); 
 
-	            out.close();
-	            file.close(); 
-	        } catch(IOException ex) { 
-	            System.out.println("IOException is caught"); 
-	        }
+	public void save(String file_name) {
+		try {    
+			FileOutputStream file = new FileOutputStream(file_name);
+			ObjectOutputStream out = new ObjectOutputStream(file);
+			out.writeObject(this); 
+
+			out.close();
+			file.close(); 
+		} catch(IOException ex) { 
+			System.out.println("IOException is caught"); 
+		}
 	}
 
 	public void init(String g) {
@@ -420,14 +420,14 @@ this.Vertex=b.Vertex;
 		try {
 			line = new JSONObject(g);//////////make the string be JSONObject
 			JSONArray arr = line.getJSONArray("Nodes");	//////make array of nodes from json
-			
+
 			for (int i = 0; i < arr.length(); i++)//run on array and creat every node
 			{
-			    int id = arr.getJSONObject(i).getInt("id");
-			    String pos = arr.getJSONObject(i).getString("pos");
-			   String[] cord= pos.split(",");
-			   
-			    this.addNode(new NodeData(id,new Point3D(Double.parseDouble(cord[0]),Double.parseDouble(cord[1]))));
+				int id = arr.getJSONObject(i).getInt("id");
+				String pos = arr.getJSONObject(i).getString("pos");
+				String[] cord= pos.split(",");
+
+				this.addNode(new NodeData(id,new Point3D(Double.parseDouble(cord[0]),Double.parseDouble(cord[1]))));
 
 
 			}		
@@ -435,17 +435,17 @@ this.Vertex=b.Vertex;
 			JSONArray arr2 = line.getJSONArray("Edges");	//////make array of edge from json
 			for (int i = 0; i < arr2.length(); i++)//run on array and creat every edge
 			{
-			    int src = arr2.getJSONObject(i).getInt("src");
-			    int dest = arr2.getJSONObject(i).getInt("dest");
-			    double  w = arr2.getJSONObject(i).getDouble("w");
-			    
-			    this.connect(src, dest, w);
+				int src = arr2.getJSONObject(i).getInt("src");
+				int dest = arr2.getJSONObject(i).getInt("dest");
+				double  w = arr2.getJSONObject(i).getDouble("w");
+
+				this.connect(src, dest, w);
 
 			}		
 
-		
-		
-		
+
+
+
 		} catch (JSONException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -453,7 +453,7 @@ this.Vertex=b.Vertex;
 
 	}
 
-	
+
 
 	/**
 	 * we put to Fruits the fruit n
