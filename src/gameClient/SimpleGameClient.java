@@ -7,6 +7,7 @@ import java.util.List;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import GUI.Graph_gui;
 import Server.Game_Server;
 import Server.game_service;
 import dataStructure.DGraph;
@@ -33,11 +34,15 @@ public class SimpleGameClient {
 	public static void main(String[] a) {
 		test1();}
 	public static void test1() {
-		int scenario_num = 2;
+		
+		int scenario_num = 20;
 		game_service game = Game_Server.getServer(scenario_num); // you have [0,23] games
 		String g = game.getGraph();
 	    DGraph gg = new DGraph();
 		gg.init(g);
+		Graph_gui gu = new Graph_gui();
+		gu.addGraph(gg);
+		gu.setVisible(true);
 		String info = game.toString();
 		JSONObject line;
 		try {
@@ -63,6 +68,7 @@ public class SimpleGameClient {
 					numrob--;
 				}
 				}
+			
 			///////////////location  robots/////////////////////////////our algorithem begin here
 			int src_node = 0;  // arbitrary node, we should start at one of the fruits
 			for(int a = 0;a<rs;a++) {
@@ -75,7 +81,7 @@ public class SimpleGameClient {
 		///////////////////////start game///////////////////////////
 		game.startGame();
 		// should be a Thread!!!
-		
+
 		while(game.isRunning()) {
 			/////////////////////////////////////where each robot move////////////////
 			moveRobots(game, gg);

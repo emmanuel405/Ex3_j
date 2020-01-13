@@ -13,7 +13,7 @@ public class NodeData implements node_data, Comparable<NodeData>, Serializable{
 	public String info;
 	public NodeData previous = null;
 	double minDistance = Integer.MAX_VALUE;
-	public ArrayList<NodeData>outgoing; // all edge that out from this node
+	public ArrayList<NodeData>outgoing;
 	
 	private static int num = 0;
 	

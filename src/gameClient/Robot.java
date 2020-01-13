@@ -16,16 +16,21 @@ public class Robot {
 		this.src=-1;
 		this.dest=-1;
 	}
+	
+public Robot(int id,int value,int src,int dest ,int speed,String pos) {
+	this. value=value;
+	this. id=id;
+	this.src=src;
+	this.dest=dest;
+	this.speed=speed;
+	
+    String[] cord= pos.split(",");
+	Point3D ans=new Point3D(Double.parseDouble(cord[0]),Double.parseDouble(cord[1]));
+	this. pos=ans;
+}
 
-	public Robot(int src, String pos,int id,int dest,int value,int speed) {
-		this. value=value;
-		this. id=id;
-		this.src=src;
-		this.dest=dest;
-		this.speed=speed;
+public Point3D getLocation() {
+	return this.pos;
 
-		String[] cord= pos.split(",");
-		Point3D ans=new Point3D(Double.parseDouble(cord[0]),Double.parseDouble(cord[1]));
-		this. pos=ans;
-	}
+}
 }
