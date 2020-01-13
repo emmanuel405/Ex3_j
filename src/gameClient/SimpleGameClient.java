@@ -31,25 +31,26 @@ import dataStructure.graph;
  *
  */
 public class SimpleGameClient {
-	public static void main(String[] a) {
+	public static void main(String[] a) throws JSONException {
 		test1();}
-	public static void test1() {
+	public static void test1() throws JSONException {
 		
-		int scenario_num = 20;
+		int scenario_num = 2;
 		game_service game = Game_Server.getServer(scenario_num); // you have [0,23] games
 		String g = game.getGraph();
 	    DGraph gg = new DGraph();
 		gg.init(g);
-		Graph_gui gu = new Graph_gui();
-		gu.addGraph(gg);
-		gu.setVisible(true);
+		
 		String info = game.toString();
+		System.out.println(info);
 		JSONObject line;
+		int rs=0;
 		try {
 			////info of game
 			line = new JSONObject(info);
 			JSONObject ttt = line.getJSONObject("GameServer");
-			int rs = ttt.getInt("robots");//num of robots
+			 rs = ttt.getInt("robots");//num of robots
+			
 			////////////////////////////////////////////////////////////enter fruit to gragh/////////
 			// the list of fruits should be considered in your solution
 			Iterator<String> f_iter = game.getFruits().iterator();
@@ -59,15 +60,7 @@ public class SimpleGameClient {
 				Fruit ans=new Fruit(fru.getDouble("value"),fru.getInt("type"),fru.getString("pos"));
 				gg.addfruit(ans);
 				}	
-			////////////////////////////////////////////////////////////enter robots to gragh/////////
-			int numrob=rs;
-			if (numrob>0) {
-				while(numrob>=0) {
-					Robot ans=new Robot();
-					gg.addrobot(ans);
-					numrob--;
-				}
-				}
+			
 			
 			///////////////location  robots/////////////////////////////our algorithem begin here
 			int src_node = 0;  // arbitrary node, we should start at one of the fruits
@@ -80,11 +73,25 @@ public class SimpleGameClient {
 		}
 		///////////////////////start game///////////////////////////
 		game.startGame();
+	////enter robots to gragh
+		Iterator<String> r_iter = game.getRobots().iterator();
+		while(r_iter.hasNext()) {
+			line = new JSONObject(r_iter.next());
+			JSONObject ro = line.getJSONObject("Robot");
+			Robot ans=new Robot(ro.getInt("id"),ro.getInt("value"),ro.getInt("src"),ro.getInt("dest"),ro.getInt("speed"),ro.getString("pos"));
+
+			gg.addrobot(ans);
+			}	
+		///////first gui show
+		Graph_gui gu = new Graph_gui();
+		gu.addGraph(gg);
+		gu.setVisible(true);
 		// should be a Thread!!!
 
 		while(game.isRunning()) {
 			/////////////////////////////////////where each robot move////////////////
 			moveRobots(game, gg);
+			
 		}
 		////////////////////////////////////////end game/////////////
 		String results = game.toString();

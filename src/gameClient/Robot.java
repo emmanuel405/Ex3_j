@@ -3,18 +3,19 @@ package gameClient;
 import utils.Point3D;
 
 public class Robot {
-	int id;
-	int src;
-	int dest;
-	int speed=1;
-	int value=0; 
-	Point3D pos;
+	public  int id;
+	public int src;
+	public int dest;
+	public int speed=1;
+	public int value=0; 
+	public Point3D pos;
 	int num=0;
 	public Robot() {
 		this. value=0;
 		this. id=num++;
 		this.src=-1;
 		this.dest=-1;
+		this.pos=Point3D.ORIGIN;
 	}
 	
 public Robot(int id,int value,int src,int dest ,int speed,String pos) {

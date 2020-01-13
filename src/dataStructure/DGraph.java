@@ -426,9 +426,8 @@ this.Vertex=b.Vertex;
 			    int id = arr.getJSONObject(i).getInt("id");
 			    String pos = arr.getJSONObject(i).getString("pos");
 			   String[] cord= pos.split(",");
-			   
-			    this.addNode(new NodeData(id,new Point3D(scale(Double.parseDouble(cord[0]),35.186179,35.2142,0,1000),scale(Double.parseDouble(cord[1]),32.100148,32.109347,100,600))));
-
+ this.addNode(new NodeData(id,new Point3D(scale(Double.parseDouble(cord[0]),35.186179,35.2142,0,1000),
+		 scale(Double.parseDouble(cord[1]),32.100148,32.109347,100,600))));
 
 			}		
 
@@ -441,11 +440,7 @@ this.Vertex=b.Vertex;
 			    
 			    this.connect(src, dest, w);
 
-			}		
-
-		
-		
-		
+			}			
 		} catch (JSONException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -459,6 +454,8 @@ this.Vertex=b.Vertex;
 	 * we put to Fruits the fruit n
 	 */
 	public void addfruit(Fruit n) {
+		//scale
+		n.pos=new Point3D(scale(n.pos.x(),35.186179,35.2142,0,1000),scale(n.pos.y(),32.100148,32.109347,100,600));
 		Fruits.add(n);
 		this.mc++;
 	} 
@@ -467,12 +464,15 @@ this.Vertex=b.Vertex;
 	 * we put to robots the robot n
 	 */
 	public void addrobot(Robot n) {
-		Robots.add(n);
+		//scale
+n.pos=new Point3D(scale(n.pos.x(),35.186179,35.2142,0,1000),scale(n.pos.y(),32.100148,32.109347,100,600));
+Robots.add(n);
+
 
 		this.mc++;
 	}
 	
-	
+	////////scall the cordinnants
 	private double scale(double data, double r_min, double r_max, 
 			double t_min, double t_max)
 	{

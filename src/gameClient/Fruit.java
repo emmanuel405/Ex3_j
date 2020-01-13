@@ -3,9 +3,9 @@ package gameClient;
 import utils.Point3D;
 
 public class Fruit {
-	double value;
-	int type;
-	Point3D pos;
+	public double value;
+	public int type;
+	public Point3D pos;
 	
 	public Fruit(double value,int type,String pos) {
 		this. value=value;

@@ -96,6 +96,7 @@ public class Graph_gui extends JFrame implements ActionListener, MouseListener, 
     	
     	
     	if (null == dg) return;
+
     	for (node_data n : dg.Vertex) {
     		
 			g.setColor(Color.GREEN);
@@ -122,14 +123,15 @@ public class Graph_gui extends JFrame implements ActionListener, MouseListener, 
 
           
     	}
-    	//for (Robot n : dg.Robots) {
-			//g.setColor(Color.blue);
-    		//g.fillOval((int)n.getLocation().x() - BIGGER, (int)n.getLocation().y() - BIGGER,
-			//		(int)2.5*BIGGER, (int)2.5*BIGGER);
-    	//}
-    	
-    	for (Fruit n : dg.Fruits) {
+    	//////////////append robots
+    	for (Robot n : dg.Robots) {
 			g.setColor(Color.blue);
+    		g.fillOval((int)n.getLocation().x() - BIGGER, (int)n.getLocation().y() - BIGGER,
+					(int)2.5*BIGGER, (int)2.5*BIGGER);
+    	}
+    	/////append fruits
+    	for (Fruit n : dg.Fruits) {
+			g.setColor(Color.orange);
     		g.fillOval((int)n.getLocation().x() - BIGGER, (int)n.getLocation().y() - BIGGER,
 					(int)2.5*BIGGER, (int)2.5*BIGGER);
     	}
