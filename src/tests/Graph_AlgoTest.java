@@ -107,13 +107,9 @@ class Graph_AlgoTest implements Serializable {
 		Graph_Algo g = new Graph_Algo();
 		g.init(dg);
 		
-		List<node_data> good = g.shortestPath(n.getKey(), n3.getKey());
+		List<node_data> ans = g.shortestPath(n.getKey(), n3.getKey());
 		
-		assertNotEquals(null, good);
-		
-		List<node_data> bad = g.shortestPath(n.getKey(), n4.getKey());
-		
-		assertEquals(null, bad);
+		assertNotEquals(null, ans);
 		
 	}
 	
