@@ -1,11 +1,5 @@
 package algorithms;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.LinkedList;
 import java.util.List;
@@ -120,29 +114,5 @@ public class Graph_Algo implements graph_algorithms,Serializable {
 		return ans;
 
 	}
-	
-	
-	public static void main(String[] args) {
-		node_data n = new NodeData();
-		node_data n1 = new NodeData();
-		node_data n2 = new NodeData();
-		node_data n3 = new NodeData();
-		node_data n4 = new NodeData();
-		
 
-		Graph_Algo g = new Graph_Algo();
-
-		g.a.addNode(n1);
-		g.a.addNode(n);
-		g.a.connect(n1.getKey(), n.getKey(), 3);
-		g.a.connect(n.getKey(), n1.getKey(), 3.2);
-		g.save("myObj.txt");
-	
-	
-		Graph_Algo g_a = new Graph_Algo();
-String fi="myObj.txt";
-		g_a.init(fi);
-		System.out.println(g_a.a.edgeSize());
-		
-	}
 }
