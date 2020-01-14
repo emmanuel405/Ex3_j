@@ -20,14 +20,6 @@ import utils.Point3D;
 import java.util.LinkedList;
 
 public class Graph_gui extends JFrame implements ActionListener, MouseListener, MouseMotionListener{
-	/*public DGraph dg = null;
-	private boolean connect = false;
-	private boolean press_connect = false; // if we press on 'connected'
-	private boolean press_shorted = false; // if we press on 'shorted path'
-	private boolean press_tsp = false; // if we press on 'TSP	'
-	private int BIGGER = 5;
-	private double PathDist=0;
-	 */
 	public DGraph dg = null;
 	Graph_Algo g_a = new Graph_Algo(dg);
 	Point3D point_pressed = null;
