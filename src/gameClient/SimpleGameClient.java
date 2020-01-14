@@ -67,6 +67,45 @@ public class SimpleGameClient {
 			for(int a = 0;a<rs;a++) {
 				game.addRobot(src_node+a);
 			}
+			
+			/*
+			 * init robot
+			 *************
+			 * 
+			 * foreach r -> robots
+			 * f_i = [r%|fruit|]
+			 * f = fruit[f_i]
+			 * locate(r,f)
+			 * 
+			 */
+		//*************************************************//
+			/**
+			 * I want to know where are the fruit in which edge. 
+			 * so I have a location of all fruits, and I put in ed list
+			 * the edge has a fruit on him.
+			 * 
+			 */
+			LinkedList<edge_data> ed = null;
+
+			Iterator<Fruit> fruit = gg.Fruits.iterator();
+			while(fruit.hasNext()) {
+				Point3D p = fruit.next().getLocation();
+				Iterator<node_data> nd = gg.Vertex.iterator();
+				while(nd.hasNext()) {
+					NodeData n = (NodeData)nd;
+					Iterator<NodeData> nd_out = n.outgoing.iterator();
+					while(nd_out.hasNext()) {
+						if(check_on_line(p, n.location, nd_out.next().location)) {
+							edge_data e = gg.ve.get(n.getKey()).get(nd_out);
+							ed.add(e);
+						}
+					}
+
+				}
+			}
+
+			//************************************************//
+
 		}
 		catch (JSONException e) {
 			e.printStackTrace();
@@ -96,6 +135,11 @@ public class SimpleGameClient {
 		////////////////////////////////////////end game/////////////
 		String results = game.toString();
 		System.out.println("Game Over: "+results);
+	}
+	private static boolean check_on_line(Point3D p, Point3D src, Point3D dest) {
+		double e = 0.001;
+		if(src.distance2D(dest) - (src.distance2D(p)+p.distance2D(dest)) < e) return true;
+		return false;
 	}
 	/** 
 	 * Moves each of the robots along the edge, 
