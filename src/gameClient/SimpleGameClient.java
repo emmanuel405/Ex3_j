@@ -2,6 +2,7 @@ package gameClient;
 
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 
 import org.json.JSONException;
@@ -11,8 +12,11 @@ import GUI.Graph_gui;
 import Server.Game_Server;
 import Server.game_service;
 import dataStructure.DGraph;
+import dataStructure.NodeData;
 import dataStructure.edge_data;
 import dataStructure.graph;
+import dataStructure.node_data;
+import utils.Point3D;
 /**
  * This class represents a simple example for using the GameServer API:
  * the main file performs the following tasks:
@@ -35,7 +39,7 @@ public class SimpleGameClient {
 		test1();}
 	public static void test1() throws JSONException {
 		
-		int scenario_num = 2;
+		int scenario_num = 22;
 		game_service game = Game_Server.getServer(scenario_num); // you have [0,23] games
 		String g = game.getGraph();
 	    DGraph gg = new DGraph();
@@ -44,7 +48,7 @@ public class SimpleGameClient {
 		String info = game.toString();
 		System.out.println(info);
 		JSONObject line;
-		int rs=0;
+		int rs=0;//num of robots
 		try {
 			////info of game
 			line = new JSONObject(info);
@@ -64,20 +68,13 @@ public class SimpleGameClient {
 			
 			///////////////location  robots/////////////////////////////our algorithem begin here
 			int src_node = 0;  // arbitrary node, we should start at one of the fruits
+			int pizur= gg.Vertex.size()/rs;
 			for(int a = 0;a<rs;a++) {
-				game.addRobot(src_node+a);
+				game.addRobot((pizur-1)%gg.Vertex.size());
+				pizur+=pizur;
 			}
 			
-			/*
-			 * init robot
-			 *************
-			 * 
-			 * foreach r -> robots
-			 * f_i = [r%|fruit|]
-			 * f = fruit[f_i]
-			 * locate(r,f)
-			 * 
-			 */
+			
 		//*************************************************//
 			/**
 			 * I want to know where are the fruit in which edge. 
@@ -88,21 +85,21 @@ public class SimpleGameClient {
 			LinkedList<edge_data> ed = null;
 
 			Iterator<Fruit> fruit = gg.Fruits.iterator();
-			while(fruit.hasNext()) {
-				Point3D p = fruit.next().getLocation();
-				Iterator<node_data> nd = gg.Vertex.iterator();
-				while(nd.hasNext()) {
-					NodeData n = (NodeData)nd;
-					Iterator<NodeData> nd_out = n.outgoing.iterator();
-					while(nd_out.hasNext()) {
-						if(check_on_line(p, n.location, nd_out.next().location)) {
-							edge_data e = gg.ve.get(n.getKey()).get(nd_out);
-							ed.add(e);
-						}
-					}
+			//while(fruit.hasNext()) {
+			//	Point3D p = fruit.next().getLocation();
+			//	Iterator<node_data> nd = gg.Vertex.iterator();
+			//	while(nd.hasNext()) {
+			//		NodeData n = (NodeData)nd;
+			//		Iterator<NodeData> nd_out = n.outgoing.iterator();
+			//		while(nd_out.hasNext()) {
+			//			if(check_on_line(p, n.location, nd_out.next().location)) {
+			//				edge_data e = gg.ve.get(n.getKey()).get(nd_out);
+			//				ed.add(e);
+			//			}
+			//		}
 
-				}
-			}
+			//	}
+			//}
 
 			//************************************************//
 
