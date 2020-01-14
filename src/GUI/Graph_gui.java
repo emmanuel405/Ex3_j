@@ -9,7 +9,6 @@ import java.awt.MenuItem;
 import java.awt.event.*;
 
 import javax.swing.JFrame;
-import javax.swing.JLabel;
 
 
 import algorithms.Graph_Algo;
@@ -17,194 +16,127 @@ import dataStructure.*;
 import gameClient.Fruit;
 import gameClient.Robot;
 import utils.Point3D;
-import java.util.Scanner;
+
+import java.util.LinkedList;
 
 public class Graph_gui extends JFrame implements ActionListener, MouseListener, MouseMotionListener{
-	public DGraph dg = null;
+	/*public DGraph dg = null;
 	private boolean connect = false;
 	private boolean press_connect = false; // if we press on 'connected'
 	private boolean press_shorted = false; // if we press on 'shorted path'
 	private boolean press_tsp = false; // if we press on 'TSP	'
 	private int BIGGER = 5;
 	private double PathDist=0;
-	
+	 */
+	public DGraph dg = null;
+	Graph_Algo g_a = new Graph_Algo(dg);
+	Point3D point_pressed = null;
+	LinkedList<node_data> list = new LinkedList<node_data>();
+	LinkedList<Point3D> node_loc = new LinkedList<Point3D>();
+
+	private int BIGGER = 5;
+
 	public Graph_gui() {
-        initGUI();
-    }
+		initGUI();
+	}
 
-    private void initGUI() {
-        this.setSize(1000, 800);
-        this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        
-        MenuBar mBar = new MenuBar();
-        Menu m = new Menu("Menu");
-        Menu m1 = new Menu("Algo");
-        mBar.add(m);
-        mBar.add(m1);
-        this.setMenuBar(mBar);
+	private void initGUI() {
+		this.setSize(1000, 800);
+		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-        MenuItem item = new MenuItem("Load");
-        item.addActionListener(this);
-        MenuItem item1 = new MenuItem("Save");
-        item1.addActionListener(this);
-        MenuItem item2 = new MenuItem("Clean graph");
-        item2.addActionListener(this);
+		MenuBar mBar = new MenuBar();
+		Menu m = new Menu("Menu");
+		mBar.add(m);
+		this.setMenuBar(mBar);
 
-        m.add(item);
-        m.add(item1);
-        m.add(item2);
+		MenuItem item = new MenuItem("Load");
+		item.addActionListener(this);
+		MenuItem item1 = new MenuItem("Save");
+		item1.addActionListener(this);
+		MenuItem item2 = new MenuItem("Clean graph");
+		item2.addActionListener(this);
 
-        MenuItem item3 = new MenuItem("Connected");
-        item3.addActionListener(this);
-        MenuItem item4 = new MenuItem("Shorted path");
-        item4.addActionListener(this);
-         MenuItem item5 = new MenuItem("TSP");
-        item5.addActionListener(this);
+		m.add(item);
+		m.add(item1);
+		m.add(item2);
 
-        m1.add(item3);
-        m1.add(item4);
-        m1.add(item5);
-	    
-        this.addMouseListener(this);
-        this.addMouseMotionListener(this);
-    }
+		this.addMouseListener(this);
+		this.addMouseMotionListener(this);
+	}
 
-    public void paint(Graphics g) {
-    	super.paint(g);
-    	
-	// press on 'connected'
-    	if(connect && press_connect) {
-    		String ans = "the graph is CONNECTED";
-    		g.setColor(Color.GREEN);
-    		g.drawString(ans, 700, 100);
-    	}
-    	if(!connect && press_connect == true) {
-    		String ans = "the graph is NOT CONNECTED";
-    		g.setColor(Color.red);
-    		g.drawString(ans, 700, 100);	
-    	}
-    	if(press_shorted) {
-    		String ans = ""+PathDist;
-    		g.setColor(Color.GREEN);
-    		g.drawString(ans, 700, 100);
-    	}
-    	if(press_tsp) {
-    		
-    	}
-	    
-    
-    	
-    	
-    	if (null == dg) return;
+	public void paint(Graphics g) {
+		super.paint(g);
+		g.setColor(Color.BLACK);
+		g.drawString("בס''ד", 950, 70);    	
 
-    	for (node_data n : dg.Vertex) {
-    		
+		if (null == dg) return;
+
+		for (node_data n : dg.Vertex) {
+			node_loc.add(n.getLocation()); // Take a location of all nodes in the graph
+
 			g.setColor(Color.GREEN);
 			g.fillOval((int)n.getLocation().x() - BIGGER, (int)n.getLocation().y() - BIGGER,
 					10, 10);
-			
+
 			NodeData nn = (NodeData)n;
-	    	for (NodeData m :nn.outgoing ) {
-                g.setColor(Color.RED);
-                g.drawLine(n.getLocation().ix(), n.getLocation().iy(),
-                        m.getLocation().ix(), m.getLocation().iy());
+			for (NodeData m :nn.outgoing ) {
+				g.setColor(Color.RED);
+				g.drawLine(n.getLocation().ix(), n.getLocation().iy(),
+						m.getLocation().ix(), m.getLocation().iy());
 
-                edge_data ed = dg.getEdge(n.getKey(), m.getKey());
-                g.drawString(String.format("%.2f", ed.getWeight()),
-                        drawOnLine(n.getLocation().x(), m.getLocation().x(), 0.75),
-                        drawOnLine(n.getLocation().y(), m.getLocation().y(), 0.75));
-                
-                g.setColor(Color.BLACK);
-                g.fillOval(drawOnLine(n.getLocation().x(), m.getLocation().x(), 0.85),
-                		   drawOnLine(n.getLocation().y(), m.getLocation().y(), 0.85),
-                		   											 			4, 4);
-            }
-			
+				edge_data ed = dg.getEdge(n.getKey(), m.getKey());
+				g.drawString(String.format("%.2f", ed.getWeight()),
+						drawOnLine(n.getLocation().x(), m.getLocation().x(), 0.75),
+						drawOnLine(n.getLocation().y(), m.getLocation().y(), 0.75));
 
-          
-    	}
-    	//////////////append robots
-    	for (Robot n : dg.Robots) {
+				g.setColor(Color.BLACK);
+				g.fillOval(drawOnLine(n.getLocation().x(), m.getLocation().x(), 0.85),
+						drawOnLine(n.getLocation().y(), m.getLocation().y(), 0.85), 4, 4);
+			}
+		}
+		//////////////append robots
+		for (Robot n : dg.Robots) {
 			g.setColor(Color.blue);
-    		g.fillOval((int)n.getLocation().x() - BIGGER, (int)n.getLocation().y() - BIGGER,
+			g.fillOval(n.getLocation().ix() - BIGGER, n.getLocation().iy() - BIGGER,
 					(int)2.5*BIGGER, (int)2.5*BIGGER);
-    	}
-    	/////append fruits
-    	for (Fruit n : dg.Fruits) {
+		}
+
+		//////////////append fruits
+		for (Fruit n : dg.Fruits) {
 			g.setColor(Color.orange);
-    		g.fillOval((int)n.getLocation().x() - BIGGER, (int)n.getLocation().y() - BIGGER,
+			g.fillOval(n.getLocation().ix() - BIGGER, n.getLocation().iy() - BIGGER,
 					(int)2.5*BIGGER, (int)2.5*BIGGER);
-    	}
-    }
+		}
+	}
+
 
 
 	@Override
-	
+
 	public void actionPerformed(ActionEvent action) {
 		String s = action.getActionCommand();
-		
+
 		switch(s) {
-		
+
 		case "Load":
-			
-		break;
-		
+
+			break;
+
 		case "Save":
-			
-		break;
 
-		case "Clean graph":
-			dg.v = null;
-			repaint();
-		break;
-
-		case "Connected":
-			Graph_Algo g1 = new Graph_Algo();
-			g1.init(dg);
-			press_connect = true;
-			connect = g1.isConnected();
-			
-			repaint();
-		break;
-
-		case "Shorted path":
-			Graph_Algo g = new Graph_Algo();
-			g.init(dg);
-			press_shorted = true;
-
-			Scanner ss = new Scanner(System.in);
-		    System.out.print("Enter the your src id : ");
-		    // Below Statement used for getting String including sentence
-		    int s1 = ss.nextInt();
-		    System.out.print("Enter the your dest id : ");
-		    int s2 = ss.nextInt();
-		    PathDist=g.shortestPathDist(s1, s2);
-		    
-
-			repaint();
-
-		break;
-		
-		case "TSP":
-			Graph_Algo gr = new Graph_Algo();
-			gr.init(dg);
-			press_tsp = true;
-			
-			repaint();
-		break;
-
+			break;
 		}
-		
+
 	}
-	
+
 	@Override
 	public void mouseDragged(MouseEvent m_e) {
-		
+
 	}
 
 	@Override
 	public void mouseMoved(MouseEvent m_e) {
-		
+
 	}
 
 	@Override
@@ -214,6 +146,25 @@ public class Graph_gui extends JFrame implements ActionListener, MouseListener, 
 
 	@Override
 	public void mousePressed(MouseEvent m_e) {
+		int x = m_e.getX();
+		int y = m_e.getY();
+		Point3D tmp = new Point3D(x, y);
+		int min_dist = (int)(BIGGER * 1.5);
+		double best_dist = 10000;
+		for (node_data nd : dg.Vertex) {
+			Point3D p = nd.getLocation();
+			double dist = tmp.distance3D(p);
+			if (dist < min_dist && dist < best_dist) {
+				best_dist = dist;
+				point_pressed = p;
+			}
+		}
+		for (node_data nd : dg.Vertex) {
+			if(point_pressed == nd.getLocation()) {
+				list.add(nd);
+				System.out.println(nd.getKey());
+			}
+		}
 		System.out.println("press !");
 	}
 
@@ -221,7 +172,7 @@ public class Graph_gui extends JFrame implements ActionListener, MouseListener, 
 	public void mouseReleased(MouseEvent m_r) {
 		System.out.println("release !");
 	}
-	
+
 	@Override
 	public void mouseEntered(MouseEvent m_e) {
 	}
@@ -234,11 +185,11 @@ public class Graph_gui extends JFrame implements ActionListener, MouseListener, 
 		this.dg = dg1;
 		this.repaint();
 	}
-	
+
 	///////////////////////////////
 	/// *** private methods *** ///
 	///////////////////////////////
-	
+
 	/**
 	 * @param start
 	 * @param fin
@@ -249,5 +200,5 @@ public class Graph_gui extends JFrame implements ActionListener, MouseListener, 
 	private int drawOnLine(double start, double fin, double proportion) {
 		return (int)(start + proportion*(fin-start));
 	}
-	
+
 }
