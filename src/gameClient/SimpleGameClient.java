@@ -75,33 +75,41 @@ public class SimpleGameClient {
 			}
 			
 			
-		//*************************************************//
+//*************************************************//
 			/**
 			 * I want to know where are the fruit in which edge. 
 			 * so I have a location of all fruits, and I put in ed list
 			 * the edge has a fruit on him.
 			 * 
 			 */
-			LinkedList<edge_data> ed = null;
+			LinkedList<edge_data> ed = new LinkedList<edge_data>();
 
 			Iterator<Fruit> fruit = gg.Fruits.iterator();
-			//while(fruit.hasNext()) {
-			//	Point3D p = fruit.next().getLocation();
-			//	Iterator<node_data> nd = gg.Vertex.iterator();
-			//	while(nd.hasNext()) {
-			//		NodeData n = (NodeData)nd;
-			//		Iterator<NodeData> nd_out = n.outgoing.iterator();
-			//		while(nd_out.hasNext()) {
-			//			if(check_on_line(p, n.location, nd_out.next().location)) {
-			//				edge_data e = gg.ve.get(n.getKey()).get(nd_out);
-			//				ed.add(e);
-			//			}
-			//		}
-
-			//	}
-			//}
-
-			//************************************************//
+			while(fruit.hasNext()) {
+				Point3D p = fruit.next().getLocation();
+				System.out.print("p = "+p.toString()+", ");
+				for (node_data nd : gg.Vertex) {
+					NodeData n = (NodeData)nd;
+					System.out.print("n.loc = "+n.getLocation()+", ");
+					Iterator<NodeData> nd_out = n.outgoing.iterator();
+					while(nd_out.hasNext()) {
+						System.out.println("nd_out.loc = "+nd_out.next().getLocation());
+							if(check_on_line(p, n.location, nd_out.next().location)) {
+								try {
+									edge_data e = gg.getEdge(n.getKey(), nd_out.next().getKey());
+									ed.add(e);
+								}catch(Exception e){
+									System.out.println("ERROR, ");
+								}
+							
+							}
+							else continue;
+					}
+				}
+				
+			}
+			System.out.println("ed = "+ed.size());
+			
 
 		}
 		catch (JSONException e) {
