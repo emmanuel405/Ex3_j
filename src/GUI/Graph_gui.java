@@ -23,7 +23,7 @@ public class Graph_gui extends JFrame implements ActionListener, MouseListener, 
 	public DGraph dg = null;
 	Graph_Algo g_a = new Graph_Algo(dg);
 	Point3D point_pressed = null;
-	LinkedList<node_data> list = new LinkedList<node_data>();
+	public LinkedList<node_data> list = new LinkedList<node_data>();
 	LinkedList<Point3D> node_loc = new LinkedList<Point3D>();
 
 	private int BIGGER = 5;
@@ -41,11 +41,11 @@ public class Graph_gui extends JFrame implements ActionListener, MouseListener, 
 		mBar.add(m);
 		this.setMenuBar(mBar);
 
-		MenuItem item = new MenuItem("Load");
+		MenuItem item = new MenuItem("yadany");
 		item.addActionListener(this);
-		MenuItem item1 = new MenuItem("Save");
+		MenuItem item1 = new MenuItem("otomat");
 		item1.addActionListener(this);
-		MenuItem item2 = new MenuItem("Clean graph");
+		MenuItem item2 = new MenuItem("senario");
 		item2.addActionListener(this);
 
 		m.add(item);
@@ -53,7 +53,6 @@ public class Graph_gui extends JFrame implements ActionListener, MouseListener, 
 		m.add(item2);
 
 		this.addMouseListener(this);
-		this.addMouseMotionListener(this);
 	}
 
 	public void paint(Graphics g) {
@@ -133,7 +132,6 @@ public class Graph_gui extends JFrame implements ActionListener, MouseListener, 
 
 	@Override
 	public void mouseClicked(MouseEvent m_e) {
-		System.out.println("clicked !");
 	}
 
 	@Override
@@ -157,12 +155,10 @@ public class Graph_gui extends JFrame implements ActionListener, MouseListener, 
 				System.out.println(nd.getKey());
 			}
 		}
-		System.out.println("press !");
 	}
 
 	@Override
 	public void mouseReleased(MouseEvent m_r) {
-		System.out.println("release !");
 	}
 
 	@Override
