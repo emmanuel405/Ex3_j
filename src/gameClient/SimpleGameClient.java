@@ -302,13 +302,9 @@ public class SimpleGameClient {
 					JSONObject line = new JSONObject(robot_json);
 
 					JSONObject ttt = line.getJSONObject("Robot");
-
 					int rid = ttt.getInt("id");
-
 					int src = ttt.getInt("src");
-
 					int dest = ttt.getInt("dest");
-
 
 					if(dest==-1) {	///no target
 						if(!gg.Robots.get(rid).path.isEmpty()) {///////////go to the next node in path
@@ -338,49 +334,42 @@ public class SimpleGameClient {
 					}
 
 				} 
-
 				catch (JSONException e) {e.printStackTrace();}
-
 			}
-
 		}
-
 	}
 
 	/**
-
 	 * a very simple random walk implementation!
-
 	 * @param g
-
 	 * @param src
-
 	 * @return
-
 	 */
 
 	private static int nextNode(graph g, int src) {
 
 		int ans = -1;
-		if 
 		Collection<edge_data> ee = g.getE(src);
-
 		Iterator<edge_data> itr = ee.iterator();
-
 		int s = ee.size();
-
 		int r = (int)(Math.random()*s);
-
 		int i=0;
-
 		while(i<r) {itr.next();i++;}
-
 		ans = itr.next().getDest();
-
 		return ans;
 
 	}
 
-
+	/*
+	 * 
+	 * יש לנו תמיד בין רובוט אחד לשלושה:
+	 * יש לנו אפשרות לקבל את כל הצלעות שיש עליהן ניקח אותן ונעבור עליהם ואז נראה איםה הרובוט ממוקם כלומר למי הוא הכי קרוב מבניהם
+	 * שוב זה סיפור של לעבור על מקסימום 5 צלעות זה לא הרבה.
+	 * ואז זה היעד שלו. ואת היעד הזה אנו מפרקיפ לתת יעדים לפי הםונצקיה "שורטר פאס" שהיא מחזירה לנו רשימת קודקודים כזכור.
+	 * אם כן לכל רובוט יש אובייקט של רשימה בבטן שקראת לו 'פאס' ואז מעדכנים את זה כל פעם שיש תזוזה של הרובוטים בודקים שוב וזה ממש קצת כי זה ממש קצת רובוטים וממש קצת פירות 
+	 * 
+	 * מה אתה אומר על זה?
+	 * 
+	 */
 
 }
