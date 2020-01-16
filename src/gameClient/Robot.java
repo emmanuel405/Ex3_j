@@ -1,5 +1,9 @@
 package gameClient;
 
+
+import java.util.List;
+
+import dataStructure.node_data;
 import utils.Point3D;
 
 public class Robot {
@@ -9,6 +13,7 @@ public class Robot {
 	public int speed=1;
 	public int value=0; 
 	public Point3D pos;
+	public List<node_data> path;
 	int num=0;
 	public Robot() {
 		this. value=0;

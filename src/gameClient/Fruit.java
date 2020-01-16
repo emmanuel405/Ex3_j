@@ -1,11 +1,14 @@
 package gameClient;
 
+import dataStructure.edgeData;
 import utils.Point3D;
 
 public class Fruit {
 	public double value;
 	public int type;
 	public Point3D pos;
+	public edgeData ed;
+	int withrob=-1;
 	
 	public Fruit(double value,int type,String pos) {
 		this. value=value;

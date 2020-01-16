@@ -21,9 +21,9 @@ import org.json.JSONObject;
 import GUI.Graph_gui;
 
 import Server.Game_Server;
-
+import Server.fruits;
 import Server.game_service;
-
+import algorithms.Graph_Algo;
 import dataStructure.DGraph;
 
 import dataStructure.NodeData;
@@ -71,41 +71,71 @@ import utils.Point3D;
  */
 
 public class SimpleGameClient {
-
+	static DGraph gg ;
 	public static void main(String[] a) throws JSONException {
 
 		test1();}
 
 	public static void test1() throws JSONException {
+
+
+
 		int scenario_num = 2;
+
 		game_service game = Game_Server.getServer(scenario_num); // you have [0,23] games
+
 		String g = game.getGraph();
-		DGraph gg = new DGraph();
+
+		gg = new DGraph();
+
 		gg.init(g);
+
+
+
 		String info = game.toString();
+
 		System.out.println(info);
+
 		JSONObject line;
+
 		int rs=0;//num of robots
+
 		try {
 
 			////info of game
+
 			line = new JSONObject(info);
+
 			JSONObject ttt = line.getJSONObject("GameServer");
+
 			rs = ttt.getInt("robots");//num of robots
+
+
+
 			////////////////////////////////////////////////////////////enter fruit to gragh/////////
 
 			// the list of fruits should be considered in your solution
 
 			Iterator<String> f_iter = game.getFruits().iterator();
+
 			while(f_iter.hasNext()) {
+
 				line = new JSONObject(f_iter.next());
+
 				JSONObject fru = line.getJSONObject("Fruit");
+
 				Fruit ans=new Fruit(fru.getDouble("value"),fru.getInt("type"),fru.getString("pos"));
+
 				gg.addfruit(ans);
+
 			}	
 
 
+
+
+
 			///////////////location  robots/////////////////////////////our algorithem begin here
+
 			int src_node = 0;  // arbitrary node, we should start at one of the fruits
 
 			int pizur= gg.Vertex.size()/rs;
@@ -113,7 +143,6 @@ public class SimpleGameClient {
 			for(int a = 0;a<rs;a++) {
 
 				game.addRobot((pizur-1)%gg.Vertex.size());
-
 				pizur+=pizur;
 
 			}
@@ -144,22 +173,20 @@ public class SimpleGameClient {
 				for (node_data nd : gg.Vertex) {
 					NodeData n = (NodeData)nd;
 
-					 for (NodeData nd1 : n.outgoing) {
+					for (NodeData nd1 : n.outgoing) {
 						Point3D dest=	nd1.getLocation();						
 						if(check_on_line(p, n.location, dest)) {
 							if (a.type==1) {
 								if (n.getKey()< nd1.getKey()) {
-							a.ed=new edgeData(n.getKey(), nd1.getKey());
-							System.out.println(a.ed);
+									a.ed=new edgeData(n.getKey(), nd1.getKey());
 								}}
 							if (a.type==-1) {
 								if (n.getKey()> nd1.getKey()) {
 									a.ed=new edgeData(nd1.getKey(), n.getKey());
-									System.out.println(a.ed);
 
 								}}
-							}
-						
+						}
+
 
 						else continue;
 					}
@@ -188,20 +215,30 @@ public class SimpleGameClient {
 			JSONObject ro = line.getJSONObject("Robot");
 
 			Robot ans=new Robot(ro.getInt("id"),ro.getInt("value"),ro.getInt("src"),ro.getInt("dest"),ro.getInt("speed"),ro.getString("pos"));
-
-
-
 			gg.addrobot(ans);
-
 		}	
+		/////////////////////////////put targets for each robot////
 
+		for (Robot ro : gg.Robots) {
+			double minpath=Integer.MAX_VALUE;///the dist to the fruit
+			for ( Fruit fr : gg.Fruits) {
+				Graph_Algo gr= new Graph_Algo();
+				gr.init(gg);
+				double dist=gr.shortestPathDist(ro.src, fr.ed.getSrc());///the dist to the  current fruit
+				if (fr.withrob==-1&&dist<minpath);////the fruit not cout
+				minpath=dist;
+				ro.dest=fr.ed.getSrc();///the trget of this robot
+
+			}
+			ro.path=gg.getPath(gg.getNode(ro.src), gg.getNode(ro.dest));///the way of this robot
+		}
 		///////first gui show
 
-		Graph_gui gu = new Graph_gui();
+		//Graph_gui gu = new Graph_gui();
 
-		gu.addGraph(gg);
+		//gu.addGraph(gg);
 
-		gu.setVisible(true);
+	   //gu.setVisible(true);
 
 		// should be a Thread!!!
 
@@ -209,11 +246,10 @@ public class SimpleGameClient {
 
 		while(game.isRunning()) {
 
+
 			/////////////////////////////////////where each robot move////////////////
-
 			moveRobots(game, gg);
-
-
+		
 
 		}
 
@@ -249,7 +285,7 @@ public class SimpleGameClient {
 
 	 */
 
-	private static void moveRobots(game_service game, graph gg) {
+	private static void moveRobots(game_service game, DGraph gg  ) {
 
 		List<String> log = game.move();
 
@@ -274,16 +310,30 @@ public class SimpleGameClient {
 					int dest = ttt.getInt("dest");
 
 
+					if(dest==-1) {	///no target
+						if(!gg.Robots.get(rid).path.isEmpty()) {///////////go to the next node in path
+							dest=gg.Robots.get(rid).path.get(0).getKey();
+							gg.Robots.get(rid).dest=dest;
+							game.chooseNextEdge(rid, dest);
+							System.out.println("Turn to node: "+dest+"  time to end:"+(t/1000));
+							System.out.println(ttt);
+						}
+						else {///the list is empty,because the fruit has been eaten.so creat a new target list
+							double minpath=Integer.MAX_VALUE;///dist to nearest fruit
+							for ( Fruit fr : gg.Fruits) {
+								Graph_Algo gr= new Graph_Algo();gr.init(gg);
+								double dist=gr.shortestPathDist(gg.Robots.get(rid).src, fr.ed.getSrc());
+								if (fr.withrob==-1&&dist<minpath) {
+								minpath=dist;
+								gg.Robots.get(rid).dest= fr.ed.getSrc();///the target of this robot
+								}
+							}
+							dest=gg.Robots.get(rid).path.get(0).getKey();
+							game.chooseNextEdge(rid, dest);
+							System.out.println("Turn to node: "+dest+"  time to end:"+(t/1000));
+							System.out.println(ttt);
+						}
 
-					if(dest==-1) {	
-
-						dest = nextNode(gg, src);
-
-						game.chooseNextEdge(rid, dest);
-
-						System.out.println("Turn to node: "+dest+"  time to end:"+(t/1000));
-
-						System.out.println(ttt);
 
 					}
 
@@ -312,7 +362,7 @@ public class SimpleGameClient {
 	private static int nextNode(graph g, int src) {
 
 		int ans = -1;
-
+		if 
 		Collection<edge_data> ee = g.getE(src);
 
 		Iterator<edge_data> itr = ee.iterator();
