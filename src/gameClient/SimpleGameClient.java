@@ -151,7 +151,7 @@ public class SimpleGameClient {
 
 
 
-			//*************************************************//
+			//******************************************connect fruit to edge
 
 			/**
 
@@ -203,8 +203,8 @@ public class SimpleGameClient {
 		///////////////////////start game///////////////////////////
 
 		game.startGame();
-
-		////enter robots to gragh
+System.out.println(game.getFruits());
+		/////////////////////////////////////enter robots to gragh
 
 		Iterator<String> r_iter = game.getRobots().iterator();
 
@@ -219,19 +219,18 @@ public class SimpleGameClient {
 		}	
 		/////////////////////////////put targets for each robot////
 
-		for (Robot ro : gg.Robots) {
-			double minpath=Integer.MAX_VALUE;///the dist to the fruit
-			for ( Fruit fr : gg.Fruits) {
-				Graph_Algo gr= new Graph_Algo();
-				gr.init(gg);
-				double dist=gr.shortestPathDist(ro.src, fr.ed.getSrc());///the dist to the  current fruit
-				if (fr.withrob==-1&&dist<minpath);////the fruit not cout
-				minpath=dist;
-				ro.dest=fr.ed.getSrc();///the trget of this robot
-
-			}
-			ro.path=gg.getPath(gg.getNode(ro.src), gg.getNode(ro.dest));///the way of this robot
-		}
+		/*
+		 * for (Robot ro : gg.Robots) { double minpath=Integer.MAX_VALUE;///the dist to
+		 * the fruit for ( Fruit fr : gg.Fruits) { Graph_Algo gr= new Graph_Algo();
+		 * gr.init(gg); double dist=gr.shortestPathDist(ro.src, fr.ed.getSrc());///the
+		 * dist to the current fruit if (fr.withrob==-1&&dist<minpath);////the fruit not
+		 * cout minpath=dist; ro.dest=fr.ed.getSrc();///the trget of this robot
+		 * 
+		 * } ro.path=gg.getPath(gg.getNode(ro.src), gg.getNode(ro.dest));///the way of
+		 * this robot
+		 * 
+		 * }
+		 */
 		///////first gui show
 
 		//Graph_gui gu = new Graph_gui();
@@ -246,10 +245,8 @@ public class SimpleGameClient {
 
 		while(game.isRunning()) {
 
-
 			/////////////////////////////////////where each robot move////////////////
 			moveRobots(game, gg);
-		
 
 		}
 
@@ -288,88 +285,84 @@ public class SimpleGameClient {
 	private static void moveRobots(game_service game, DGraph gg  ) {
 
 		List<String> log = game.move();
-
 		if(log!=null) {
-
 			long t = game.timeToEnd();
-
 			for(int i=0;i<log.size();i++) {
-
 				String robot_json = log.get(i);
-
 				try {
-
 					JSONObject line = new JSONObject(robot_json);
-
 					JSONObject ttt = line.getJSONObject("Robot");
 					int rid = ttt.getInt("id");
 					int src = ttt.getInt("src");
 					int dest = ttt.getInt("dest");
-
-					if(dest==-1) {	///no target
-						if(!gg.Robots.get(rid).path.isEmpty()) {///////////go to the next node in path
-							dest=gg.Robots.get(rid).path.get(0).getKey();
-							gg.Robots.get(rid).dest=dest;
-							game.chooseNextEdge(rid, dest);
-							System.out.println("Turn to node: "+dest+"  time to end:"+(t/1000));
-							System.out.println(ttt);
-						}
-						else {///the list is empty,because the fruit has been eaten.so creat a new target list
-							double minpath=Integer.MAX_VALUE;///dist to nearest fruit
-							for ( Fruit fr : gg.Fruits) {
-								Graph_Algo gr= new Graph_Algo();gr.init(gg);
-								double dist=gr.shortestPathDist(gg.Robots.get(rid).src, fr.ed.getSrc());
-								if (fr.withrob==-1&&dist<minpath) {
-								minpath=dist;
-								gg.Robots.get(rid).dest= fr.ed.getSrc();///the target of this robot
-								}
-							}
-							dest=gg.Robots.get(rid).path.get(0).getKey();
-							game.chooseNextEdge(rid, dest);
-							System.out.println("Turn to node: "+dest+"  time to end:"+(t/1000));
-							System.out.println(ttt);
-						}
-
-
+				
+					if(dest==-1) {	
+						dest = nextNode(gg, src,rid);
+						game.chooseNextEdge(rid, dest);
+						System.out.println("Turn to node: "+dest+"  time to end:"+(t/1000));
+						System.out.println(ttt);
 					}
-
 				} 
 				catch (JSONException e) {e.printStackTrace();}
 			}
 		}
 	}
-
 	/**
-	 * a very simple random walk implementation!
+
+	 *  implementation imanuel algo!
+
 	 * @param g
+
 	 * @param src
+
 	 * @return
+
 	 */
 
-	private static int nextNode(graph g, int src) {
+	private static int nextNode(graph g, int src,int rid) {
+////////creat th targets list
+		if (gg.Robots.get(rid).path==null) {
+			double minpath=Integer.MAX_VALUE;///the dist to the fruit
+		for ( Fruit fr : gg.Fruits) {
+			Graph_Algo gr= new Graph_Algo();
+			gr.init(gg);
+			double dist=gr.shortestPathDist(src, fr.ed.getSrc());///the dist to the  current fruit
+			if (fr.withrob==-1&&dist<minpath);////the fruit not cout
+			minpath=dist;
+			gg.Robots.get(rid).dest=fr.ed.getSrc();///the trget of this robot
 
-		int ans = -1;
-		Collection<edge_data> ee = g.getE(src);
-		Iterator<edge_data> itr = ee.iterator();
-		int s = ee.size();
-		int r = (int)(Math.random()*s);
-		int i=0;
-		while(i<r) {itr.next();i++;}
-		ans = itr.next().getDest();
-		return ans;
+		}
+		gg.Robots.get(rid).path=gg.getPath(gg.getNode(gg.Robots.get(rid).src), gg.getNode(gg.Robots.get(rid).dest));///the way of this robot
+		return gg.Robots.get(rid).dest;///finish
 
 	}
+////////////the list exist
+		if (gg.Robots.get(rid).path.size()>0){///thers more then 1
+			gg.Robots.get(rid).path.remove(0);
+		
+////////the list is empty after remove
+if (gg.Robots.get(rid).path.isEmpty()) {
+		double minpath=Integer.MAX_VALUE;///the dist to the fruit
+		for ( Fruit fr : gg.Fruits) {
+			Graph_Algo gr= new Graph_Algo();
+			gr.init(gg);
+			double dist=gr.shortestPathDist(src, fr.ed.getSrc());///the dist to the  current fruit
+			if (fr.withrob==-1&&dist<minpath);////the fruit not cout
+			minpath=dist;
+			gg.Robots.get(rid).dest=fr.ed.getSrc();///the trget of this robot
 
-	/*
-	 * 
-	 * יש לנו תמיד בין רובוט אחד לשלושה:
-	 * יש לנו אפשרות לקבל את כל הצלעות שיש עליהן ניקח אותן ונעבור עליהם ואז נראה איםה הרובוט ממוקם כלומר למי הוא הכי קרוב מבניהם
-	 * שוב זה סיפור של לעבור על מקסימום 5 צלעות זה לא הרבה.
-	 * ואז זה היעד שלו. ואת היעד הזה אנו מפרקיפ לתת יעדים לפי הםונצקיה "שורטר פאס" שהיא מחזירה לנו רשימת קודקודים כזכור.
-	 * אם כן לכל רובוט יש אובייקט של רשימה בבטן שקראת לו 'פאס' ואז מעדכנים את זה כל פעם שיש תזוזה של הרובוטים בודקים שוב וזה ממש קצת כי זה ממש קצת רובוטים וממש קצת פירות 
-	 * 
-	 * מה אתה אומר על זה?
-	 * 
-	 */
+		}
+		gg.Robots.get(rid).path=gg.getPath(gg.getNode(gg.Robots.get(rid).src), gg.getNode(gg.Robots.get(rid).dest));///the way of this robot
+
+	}
+else///the list not empty
+	gg.Robots.get(rid).dest=gg.Robots.get(rid).path.get(0).getKey();
+
+		}
+
+
+return gg.Robots.get(rid).dest;
+	}
+
 
 }
