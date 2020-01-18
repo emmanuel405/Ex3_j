@@ -1,5 +1,8 @@
 package gameClient;
 
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 
 import org.json.JSONException;
@@ -9,7 +12,11 @@ import GUI.Graph_gui;
 import Server.game_service;
 import algorithms.Graph_Algo;
 import dataStructure.DGraph;
+import dataStructure.NodeData;
+import dataStructure.edgeData;
+import dataStructure.edge_data;
 import dataStructure.graph;
+import dataStructure.node_data;
 import utils.Point3D;
 
 /** 
@@ -82,9 +89,12 @@ class Move implements Runnable {
 	 * @param g
 	 * @param src
 	 * @return
+	 * @throws JSONException 
 	 */
-	private int nextNode(graph g, int src, int rid) {
-		////////creat th targets list
+	private int nextNode(graph g, int src, int rid) throws JSONException {
+		this.gg.Robots.get(rid).src=src;
+		////////creat th targets list at first iterate
+
 		if (this.gg.Robots.get(rid).path==null) {
 			double minpath=Integer.MAX_VALUE;///the dist to the fruit
 			for (Fruit fr : gg.Fruits) {
@@ -97,32 +107,87 @@ class Move implements Runnable {
 			}
 			this.gg.Robots.get(rid).path=this.gg.getPath(this.gg.getNode(this.gg.Robots.get(rid).src),
 					this.gg.getNode(this.gg.Robots.get(rid).dest));///the way of this robot
-			return this.gg.Robots.get(rid).dest;///finish
+			return this.gg.Robots.get(rid).path.get(0).getKey();///finish
+
 		}
 
 		////////////the list exist
-		else if (gg.Robots.get(rid).path.size()>0){///thers more then 1
+		else if (gg.Robots.get(rid).path.size()>0){///thers more then 1 target
 			gg.Robots.get(rid).path.remove(0);
 
-			////////the list is empty after remove
-			if (gg.Robots.get(rid).path.isEmpty()) {
+			////////the list is empty after remove beacuse the fruit has been eaten
+			if (gg.Robots.get(rid).path.size()==0) {
+				gg.Fruits=new ArrayList<Fruit>();				
+				//reset fruit in gragh
+				boolean flag=true;
+				Iterator<String> f_iter = game.getFruits().iterator();
+				while(f_iter.hasNext()) {
+					JSONObject line = new JSONObject(f_iter.next());
+					JSONObject fru = line.getJSONObject("Fruit");
+					Fruit ans=new Fruit(fru.getDouble("value"),fru.getInt("type"),fru.getString("pos"));
+
+					gg.addfruit(ans);
+				}
+				LinkedList<edge_data> ed = new LinkedList<edge_data>();//the edges of fruits
+				Iterator<Fruit> fruit = gg.Fruits.iterator();
+				while(fruit.hasNext()) {
+					Fruit a=fruit.next();
+					Point3D p = a.getLocation();
+					for (node_data nd : gg.Vertex) {
+						NodeData n = (NodeData)nd;
+
+						for (NodeData nd1 : n.outgoing) {
+							Point3D dest=	nd1.getLocation();						
+							if(check_on_line(p, n.location, dest)) {
+								if (a.type==1) {
+									if (n.getKey()< nd1.getKey()) {
+										a.ed=new edgeData(n.getKey(), nd1.getKey());
+									}}
+								if (a.type==-1) {
+									if (n.getKey()> nd1.getKey()) {
+										a.ed=new edgeData(nd1.getKey(), n.getKey());
+
+									}}
+							}
+							else continue;
+						}
+					}
+				}
+
+
 				double minpath=Integer.MAX_VALUE;///the dist to the fruit
+
 				for (Fruit fr : gg.Fruits) {
 					Graph_Algo gr= new Graph_Algo();
 					gr.init(gg);
 					double dist=gr.shortestPathDist(src, fr.ed.getSrc());///the dist to the  current fruit
-					if (fr.withrob==-1&&dist<minpath);////the fruit not cout
-					minpath=dist;
-					this.gg.Robots.get(rid).dest=fr.ed.getSrc();///the trget of this robot
+					if (fr.withrob==-1&&dist<minpath) {////the fruit not cout
+						minpath=dist;
+						this.gg.Robots.get(rid).dest=fr.ed.getSrc();///the trget of this robot
+					}
+					if (!(this.gg.Robots.get(rid).dest==this.gg.Robots.get(rid).src)) {
+						this.gg.Robots.get(rid).path=gg.getPath(this.gg.getNode(this.gg.Robots.get(rid).src),
+								this.gg.getNode(this.gg.Robots.get(rid).dest));///the way of this robot
+					}
+					else {
+						this.gg.Robots.get(rid).path=gg.getPath(this.gg.getNode(this.gg.Robots.get(rid).src),
+								gg.getNode(fr.ed.getDest()));
+					}
+					
 				}
-				this.gg.Robots.get(rid).path=gg.getPath(this.gg.getNode(this.gg.Robots.get(rid).src),
-						this.gg.getNode(this.gg.Robots.get(rid).dest));///the way of this robot
 			}
-			else///the list not empty
-				this.gg.Robots.get(rid).dest=this.gg.Robots.get(rid).path.get(0).getKey();
-		}
+			///////////////the list not empty
+			return this.gg.Robots.get(rid).path.get(0).getKey();
 
-		return this.gg.Robots.get(rid).dest;
+		}
+		return this.gg.Robots.get(rid).path.get(0).getKey();
+
+	}
+
+	private boolean check_on_line(Point3D p, Point3D src, Point3D dest) {
+		double e = 0.0000001;
+		if((src.distance2D(p)+p.distance2D(dest)-src.distance2D(dest)) < e) return true;
+		return false;
 	}
 
 	@Override

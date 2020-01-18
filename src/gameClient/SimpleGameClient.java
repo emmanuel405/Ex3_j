@@ -73,7 +73,7 @@ public class SimpleGameClient {
 	}
 	public static void test1() throws JSONException {
 
-		int scenario_num = 5;
+		int scenario_num = 1;
 
 		game_service game = Game_Server.getServer(scenario_num); // you have [0,23] games
 
@@ -116,10 +116,12 @@ public class SimpleGameClient {
 
 			///spread the robots on server gragh
 			int pizur= gg.Vertex.size()/rs;
+			int stati=pizur;
 
 			for(int a = 0;a<rs;a++) {
 				game.addRobot((pizur-1)%gg.Vertex.size());
-				pizur+=pizur;
+				pizur+=stati;
+				
 
 			}
 
@@ -182,7 +184,6 @@ public class SimpleGameClient {
 			line = new JSONObject(r_iter.next());
 
 			JSONObject ro = line.getJSONObject("Robot");
-
 			Robot ans=new Robot(ro.getInt("id"),ro.getInt("value"),ro.getInt("src"),ro.getInt("dest"),ro.getInt("speed"),ro.getString("pos"));
 			gg.addrobot(ans);
 		}	
