@@ -172,9 +172,12 @@ class Move implements Runnable {
 					else {
 						this.gg.Robots.get(rid).path=gg.getPath(this.gg.getNode(this.gg.Robots.get(rid).src),
 								gg.getNode(fr.ed.getDest()));
+						this.gg.Robots.get(rid).dest=fr.ed.getDest();
 					}
 					
 				}
+				return this.gg.Robots.get(rid).path.get(0).getKey();
+
 			}
 			///////////////the list not empty
 			return this.gg.Robots.get(rid).path.get(0).getKey();
