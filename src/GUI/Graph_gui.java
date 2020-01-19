@@ -7,8 +7,13 @@ import java.awt.MenuBar;
 import java.awt.MenuItem;
 import java.awt.event.*;
 
+import Server.Game_Server;
+import Server.game_service;
+
 import javax.swing.JFrame;
 
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import algorithms.Graph_Algo;
 import dataStructure.*;
@@ -16,15 +21,22 @@ import gameClient.Fruit;
 import gameClient.Robot;
 import utils.Point3D;
 
+import java.util.Iterator;
 import java.util.LinkedList;
 
 public class Graph_gui extends JFrame implements ActionListener, MouseListener, MouseMotionListener{
 	Thread t;
+	game_service game;
+	int rs;
 	public DGraph dg = null;
 	Graph_Algo g_a = new Graph_Algo(dg);
 	Point3D point_pressed = null;
 	public LinkedList<node_data> list_of_press = new LinkedList<node_data>();
 	LinkedList<Point3D> node_loc = new LinkedList<Point3D>();
+
+	boolean AUTO = false;
+	boolean MANU = false;
+	boolean NUMBER = false;
 
 	private int BIGGER = 5;
 
@@ -41,16 +53,17 @@ public class Graph_gui extends JFrame implements ActionListener, MouseListener, 
 		mBar.add(m);
 		this.setMenuBar(mBar);
 
-		MenuItem item = new MenuItem("Manual");
+		MenuItem item = new MenuItem("Manual Game");
 		item.addActionListener(this);
-		MenuItem item1 = new MenuItem("Automatic");
+		MenuItem item1 = new MenuItem("Automatic Game");
 		item1.addActionListener(this);
-		MenuItem item2 = new MenuItem("Senario");
+		MenuItem item2 = new MenuItem("Senario Number");
 		item2.addActionListener(this);
 
+		m.add(item2);
 		m.add(item);
 		m.add(item1);
-		m.add(item2);
+
 
 		this.addMouseListener(this);
 	}
@@ -86,27 +99,58 @@ public class Graph_gui extends JFrame implements ActionListener, MouseListener, 
 							drawOnLine(n.getLocation().y(), m.getLocation().y(), 0.85), 4, 4);
 				}
 			}
-			//////////////append robots
-			for (Robot n : dg.Robots) {
-				g.setColor(Color.blue);
-				g.fillOval(n.getLocation().ix() - BIGGER, n.getLocation().iy() - BIGGER,
-						(int)2.5*BIGGER, (int)2.5*BIGGER);
-			}
 
 			//////////////append fruits
 			for (Fruit n : dg.Fruits) {
 				g.setColor(Color.orange);
 				g.fillOval(n.getLocation().ix() - BIGGER, n.getLocation().iy() - BIGGER,
 						(int)2.5*BIGGER, (int)2.5*BIGGER);
+			}
+
+			// The player press on Automatic or Manual Game
+			if(AUTO || MANU) {
+				if(AUTO) {
+					//////////////append robots
+					for (Robot n : dg.Robots) {
+						g.setColor(Color.blue);
+						g.fillOval(n.getLocation().ix() - BIGGER, n.getLocation().iy() - BIGGER,
+								(int)2.5*BIGGER, (int)2.5*BIGGER);
+					}
+				}	
+				else {
+					while(MANU) {
+						if (list_of_press.size() == rs) MANU = false;
+						for (node_data n : list_of_press) {
+							game.addRobot(n.getKey());
+					
+					
+//					for (node_data n : list_of_press) {
+//						Robot r = new Robot();
+//						r.setLocation(n.getLocation());
+						g.setColor(Color.blue);
+						g.fillOval(n.getLocation().ix() - BIGGER, n.getLocation().iy() - BIGGER,
+								(int)2.5*BIGGER, (int)2.5*BIGGER);
+//					}
+						}
+					}
+				}
 				
 			}
 			t.sleep(100);
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
+
+		/*if(NUMBER) {
+		this.setSize(500, 150);
+		this.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+		g.setColor(Color.BLACK);
+		g.drawString("Choose your Senario Number from 0 to 23", 100, 100);
 	}
+	NUMBER = false;*/
 
 
+	}
 
 	@Override
 
@@ -115,21 +159,25 @@ public class Graph_gui extends JFrame implements ActionListener, MouseListener, 
 
 		switch(s) {
 
-		case "Manual":
+		case "Senario Number":
+			NUMBER = true;
+			int rs = 1;
+			int scenario = choose_num();
 			
 			repaint();
 			break;
 
-		case "Automatic":
-			
+		case "Manual Game":
+			MANU = true;
+
 			repaint();
 			break;
 
-		case "Senario":
-			
+		case "Automatic Game":
+			AUTO = true;
+
 			repaint();
 			break;
-
 		}
 
 	}
@@ -200,5 +248,28 @@ public class Graph_gui extends JFrame implements ActionListener, MouseListener, 
 	private int drawOnLine(double start, double fin, double proportion) {
 		return (int)(start + proportion*(fin-start));
 	}
+
+	private int number_robots(game_service game) {
+		String info = game.toString();
+		System.out.println(info);
+		JSONObject line;
+		int rs = -1;//num of robots
+		try {
+			////info of game
+			line = new JSONObject(info);
+			JSONObject ttt = line.getJSONObject("GameServer");
+			rs = ttt.getInt("robots"); //num of robots
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
+//		if()
+		return 0;
+	}		
+
+	private int choose_num() {
+		
+		return 0;	
+	}
+
 
 }
