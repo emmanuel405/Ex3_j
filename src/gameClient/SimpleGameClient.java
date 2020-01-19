@@ -1,7 +1,6 @@
 package gameClient;
 
 import org.json.JSONException;
-import GUI.Graph_gui;
 
 /**
  * This class represents a simple example for using the GameServer API:
@@ -22,12 +21,13 @@ import GUI.Graph_gui;
  */
 
 public class SimpleGameClient {
-	static Graph_gui gu = new Graph_gui();
+	static MyGameGui gui = new MyGameGui();
 
 	public static void main(String[] a) throws JSONException {
 		test1();
 	}
-	public static void test1() throws JSONException {
-		gu.setVisible(true);
+	
+	private static void test1() throws JSONException {
+		gui.setVisible(true);
 	}
 }
