@@ -85,6 +85,7 @@ public class Graph_gui extends JFrame implements ActionListener, MouseListener, 
 			} catch (TimeoutException e) {
 				e.printStackTrace();
 			}
+			repaint();
 			break;
 
 		case "Manual Game":
@@ -108,7 +109,35 @@ public class Graph_gui extends JFrame implements ActionListener, MouseListener, 
 		super.paint(g);
 		g.setColor(Color.BLACK);
 		g.drawString("בס''ד", 950, 70);
+		
+		game = Game_Server.getServer(scenario);
+		String graph_game = game.getGraph();
+		dg = new DGraph();
+		/////////////////////////first push to gragh
+		dg.init(graph_game);
+		String info = game.toString();
+		System.out.println(info);
+		JSONObject line;
+		num_robots = 0;
 
+		try {
+			////info of game
+			line = new JSONObject(info);
+			JSONObject ttt = line.getJSONObject("GameServer");
+			num_robots = ttt.getInt("robots");	//num of robots
+
+			Iterator<String> f_iter = game.getFruits().iterator();
+			while(f_iter.hasNext()) {
+				line = new JSONObject(f_iter.next());
+				JSONObject fru = line.getJSONObject("Fruit");
+				Fruit ans=new Fruit(fru.getDouble("value"),fru.getInt("type"),fru.getString("pos"));
+				dg.addfruit(ans);
+			}
+
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
+		
 		if (null == dg) return;
 
 		try {
@@ -142,9 +171,11 @@ public class Graph_gui extends JFrame implements ActionListener, MouseListener, 
 				g.fillOval(n.getLocation().ix() - BIGGER, n.getLocation().iy() - BIGGER,
 						(int)2.5*BIGGER, (int)2.5*BIGGER);
 			}
+			
 			if(CAN_PRINT_ROBOT) {
 				//////////////append robots
 				for (Robot n : dg.Robots) {
+					System.out.println("\nloc = "+n.getLocation());
 					g.setColor(Color.blue);
 					g.fillOval(n.getLocation().ix() - BIGGER, n.getLocation().iy() - BIGGER,
 							(int)2.5*BIGGER, (int)2.5*BIGGER);
@@ -162,13 +193,32 @@ public class Graph_gui extends JFrame implements ActionListener, MouseListener, 
 ###########################################################################################################
 	
 ***********************************************************************************************************/
+	/**
+	 * we choose a number of scenario => 0-23
+	 * else choose again.
+	 * @throws TimeoutException
+	 */
+	private void choose_num() throws TimeoutException {
+		if(NUMBER) {
+			String input = JOptionPane.showInputDialog(null, "Please choose scenario between 0 and 23\nYour choice:");
+			try {
+				scenario = Integer.parseInt(input);
+			} catch(Exception e) {
+				throw new TimeoutException("Is not an Integer !!");
+			}
+			if(0 > scenario || scenario > 23) {
+				choose_num();
+			}
+		}
+	}
+	
+	/**
+	 * I want to know where are the fruit in which edge. 
+	 * so I have a location of all fruits, and I put in ed list
+	 * the edge has a fruit on him.
+	 * 
+	 */
 	private void fruitEdge() {
-		/**
-		 * I want to know where are the fruit in which edge. 
-		 * so I have a location of all fruits, and I put in ed list
-		 * the edge has a fruit on him.
-		 * 
-		 */
 		LinkedList<edge_data> ed = new LinkedList<edge_data>();//the edges of fruits
 		Iterator<Fruit> fruit = dg.Fruits.iterator();
 		while(fruit.hasNext()) {
@@ -214,38 +264,17 @@ public class Graph_gui extends JFrame implements ActionListener, MouseListener, 
 	 * 
 	 */
 	private void start_of_game() {
-		game = Game_Server.getServer(scenario);
-		String g = game.getGraph();
-		dg = new DGraph();
-		/////////////////////////first push to gragh
-		dg.init(g);
-		String info = game.toString();
-		System.out.println(info);
-		JSONObject line;
-		num_robots = 0;
+		///spread the robots on server gragh
+		int pizur = dg.Vertex.size() / num_robots;
+		int stati = pizur;
 
-		try {
-			////info of game
-			line = new JSONObject(info);
-			JSONObject ttt = line.getJSONObject("GameServer");
-			num_robots = ttt.getInt("robots");	//num of robots
-
-			Iterator<String> f_iter = game.getFruits().iterator();
-			while(f_iter.hasNext()) {
-				line = new JSONObject(f_iter.next());
-				JSONObject fru = line.getJSONObject("Fruit");
-				Fruit ans=new Fruit(fru.getDouble("value"),fru.getInt("type"),fru.getString("pos"));
-				dg.addfruit(ans);
-			}
-
-		} catch (JSONException e) {
-			e.printStackTrace();
+		for(int a = 0; a<num_robots; a++) {
+			game.addRobot((pizur-1) % dg.Vertex.size());
+			pizur += stati;
 		}
-
-		paintRobots();
-
 		game.startGame();
-
+		paintRobots();
+		
 		Move m = new Move(game, dg);
 		while(game.isRunning()) {
 			/////////////////////////////////////where each robot move////////////////
@@ -285,20 +314,12 @@ public class Graph_gui extends JFrame implements ActionListener, MouseListener, 
 			} catch (JSONException e) {
 				e.printStackTrace();
 			}	
-		}	
-		///spread the robots on server gragh
-		int pizur = dg.Vertex.size() / num_robots;
-		int stati = pizur;
-
-		for(int a = 0; a<num_robots; a++) {
-			game.addRobot((pizur-1) % dg.Vertex.size());
-			pizur += stati;
 		}
-
+		
 	}
 
 	private void Manual_Robots() {
-		for(int r = 0; r<num_robots; r++)
+		for(int r = 0; r < num_robots; r++)
 			game.addRobot(list_of_press.get(r).getKey());
 	}
 
@@ -357,25 +378,6 @@ public class Graph_gui extends JFrame implements ActionListener, MouseListener, 
 	private void oneOfThem() {
 		if(MANU) AUTO = false;
 		if(AUTO) MANU  = false;
-	}
-
-	/**
-	 * we choose a number of scenario => 0-23
-	 * else choose again.
-	 * @throws TimeoutException
-	 */
-	private void choose_num() throws TimeoutException {
-		if(NUMBER) {
-			String input = JOptionPane.showInputDialog(null, "Please choose scenario between 0 and 23\nYour choice:");
-			try {
-				scenario = Integer.parseInt(input);
-			} catch(Exception e) {
-				throw new TimeoutException("Is not an Integer !!");
-			}
-			if(0 > scenario || scenario > 23) {
-				choose_num();
-			}
-		}
 	}
 
 
