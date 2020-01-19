@@ -1,223 +1,275 @@
-package gameClient;
+package GUI;
 
-import java.util.Collection;
-
-import java.util.Iterator;
-
-import java.util.LinkedList;
-
-import java.util.List;
-
-import org.json.JSONException;
-
-import org.json.JSONObject;
-
-import GUI.Graph_gui;
+import java.awt.Color;
+import java.awt.Graphics;
+import java.awt.Menu;
+import java.awt.MenuBar;
+import java.awt.MenuItem;
+import java.awt.event.*;
 
 import Server.Game_Server;
-import Server.fruits;
 import Server.game_service;
+
+import javax.swing.JFrame;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import algorithms.Graph_Algo;
-import dataStructure.DGraph;
-
-import dataStructure.NodeData;
-import dataStructure.edgeData;
-import dataStructure.edge_data;
-
-import dataStructure.graph;
-
-import dataStructure.node_data;
-
+import dataStructure.*;
+import gameClient.Fruit;
+import gameClient.Robot;
 import utils.Point3D;
 
-/**
+import java.util.Iterator;
+import java.util.LinkedList;
 
- * This class represents a simple example for using the GameServer API:
+public class Graph_gui extends JFrame implements ActionListener, MouseListener, MouseMotionListener{
+	Thread t;
+	game_service game;
+	int rs;
+	public DGraph dg = null;
+	Graph_Algo g_a = new Graph_Algo(dg);
+	Point3D point_pressed = null;
+	public LinkedList<node_data> list_of_press = new LinkedList<node_data>();
+	LinkedList<Point3D> node_loc = new LinkedList<Point3D>();
 
- * the main file performs the following tasks:
+	boolean AUTO = false;
+	boolean MANU = false;
+	boolean NUMBER = false;
 
- * 1. Creates a game_service [0,23] (line 36)
+	private int BIGGER = 5;
 
- * 2. Constructs the graph from JSON String (lines 37-39)
-
- * 3. Gets the scenario JSON String (lines 40-41)
-
- * 4. Prints the fruits data (lines 49-50)
-
- * 5. Add a set of robots (line 52-53) // note: in general a list of robots should be added
-
- * 6. Starts game (line 57)
-
- * 7. Main loop (should be a thread) (lines 59-60)
-
- * 8. move the robot along the current edge (line 74)
-
- * 9. direct to the next edge (if on a node) (line 87-88)
-
- * 10. prints the game results (after "game over"): (line 63)
-
- *  
-
- * @author boaz.benmoshe
-
- *
-
- */
-
-public class SimpleGameClient {
-	static DGraph gg ;
-	static Graph_gui gu = new Graph_gui();
-
-	public static void main(String[] a) throws JSONException {
-		test1();
+	public Graph_gui() {
+		initGUI();
 	}
-	public static void test1() throws JSONException {
 
-		int scenario_num = 1;
+	private void initGUI() {
+		this.setSize(1000, 800);
+		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-		game_service game = Game_Server.getServer(scenario_num); // you have [0,23] games
+		MenuBar mBar = new MenuBar();
+		Menu m = new Menu("Menu");
+		mBar.add(m);
+		this.setMenuBar(mBar);
 
-		String g = game.getGraph();
+		MenuItem item = new MenuItem("Manual Game");
+		item.addActionListener(this);
+		MenuItem item1 = new MenuItem("Automatic Game");
+		item1.addActionListener(this);
+		MenuItem item2 = new MenuItem("Senario Number");
+		item2.addActionListener(this);
 
-		gg = new DGraph();
-		////////////////////////////////////////first push to gragh
-		gg.init(g);
+		m.add(item2);
+		m.add(item);
+		m.add(item1);
 
-		String info = game.toString();
 
-		System.out.println(info);
+		this.addMouseListener(this);
+	}
 
-		JSONObject line;
+	public void paint(Graphics g) {
+		super.paint(g);
+		g.setColor(Color.BLACK);
+		g.drawString("בס''ד", 950, 70);
 
-		int rs=0;//num of robots
+		if (null == dg) return;
 
 		try {
+			for (node_data n : dg.Vertex) {
+				node_loc.add(n.getLocation()); // Take a location of all nodes in the graph
 
-			////info of game
+				g.setColor(Color.GREEN);
+				g.fillOval((int)n.getLocation().x() - BIGGER, (int)n.getLocation().y() - BIGGER,
+						10, 10);
 
-			line = new JSONObject(info);
+				NodeData nn = (NodeData)n;
+				for (NodeData m :nn.outgoing ) {
+					g.setColor(Color.RED);
+					g.drawLine(n.getLocation().ix(), n.getLocation().iy(),
+							m.getLocation().ix(), m.getLocation().iy());
 
-			JSONObject ttt = line.getJSONObject("GameServer");
+					edge_data ed = dg.getEdge(n.getKey(), m.getKey());
+					g.drawString(String.format("%.2f", ed.getWeight()),
+							drawOnLine(n.getLocation().x(), m.getLocation().x(), 0.75),
+							drawOnLine(n.getLocation().y(), m.getLocation().y(), 0.75));
 
-			rs = ttt.getInt("robots");//num of robots
-
-			////////////////////////////////////////////////////////////enter fruit to gragh/////////
-
-			Iterator<String> f_iter = game.getFruits().iterator();
-			while(f_iter.hasNext()) {
-				line = new JSONObject(f_iter.next());
-				JSONObject fru = line.getJSONObject("Fruit");
-				Fruit ans=new Fruit(fru.getDouble("value"),fru.getInt("type"),fru.getString("pos"));
-				gg.addfruit(ans);
-
-			}	
-
-			///////////////location  robots/////////////////////////////our algorithem begin here
-
-			///spread the robots on server gragh
-			int pizur= gg.Vertex.size()/rs;
-			int stati=pizur;
-
-			for(int a = 0;a<rs;a++) {
-				game.addRobot((pizur-1)%gg.Vertex.size());
-				pizur+=stati;
-				
-
-			}
-
-			//******************************************connect fruit to edge
-
-			/**
-
-			 * I want to know where are the fruit in which edge. 
-
-			 * so I have a location of all fruits, and I put in ed list
-
-			 * the edge has a fruit on him.
-
-			 * 
-
-			 */
-
-			LinkedList<edge_data> ed = new LinkedList<edge_data>();//the edges of fruits
-			Iterator<Fruit> fruit = gg.Fruits.iterator();
-			while(fruit.hasNext()) {
-				Fruit a=fruit.next();
-				Point3D p = a.getLocation();
-				for (node_data nd : gg.Vertex) {
-					NodeData n = (NodeData)nd;
-
-					for (NodeData nd1 : n.outgoing) {
-						Point3D dest=	nd1.getLocation();						
-						if(check_on_line(p, n.location, dest)) {
-							if (a.type==1) {
-								if (n.getKey()< nd1.getKey()) {
-									a.ed=new edgeData(n.getKey(), nd1.getKey());
-								}}
-							if (a.type==-1) {
-								if (n.getKey()> nd1.getKey()) {
-									a.ed=new edgeData(nd1.getKey(), n.getKey());
-
-								}}
-						}
-						else continue;
-					}
+					g.setColor(Color.BLACK);
+					g.fillOval(drawOnLine(n.getLocation().x(), m.getLocation().x(), 0.85),
+							drawOnLine(n.getLocation().y(), m.getLocation().y(), 0.85), 4, 4);
 				}
 			}
-		}
 
-		catch (JSONException e) {
+			//////////////append fruits
+			for (Fruit n : dg.Fruits) {
+				g.setColor(Color.orange);
+				g.fillOval(n.getLocation().ix() - BIGGER, n.getLocation().iy() - BIGGER,
+						(int)2.5*BIGGER, (int)2.5*BIGGER);
+			}
 
+			// The player press on Automatic or Manual Game
+			if(AUTO || MANU) {
+				if(AUTO) {
+					//////////////append robots
+					for (Robot n : dg.Robots) {
+						g.setColor(Color.blue);
+						g.fillOval(n.getLocation().ix() - BIGGER, n.getLocation().iy() - BIGGER,
+								(int)2.5*BIGGER, (int)2.5*BIGGER);
+					}
+				}	
+				else {
+					while(MANU) {
+						if (list_of_press.size() == rs) MANU = false;
+						for (node_data n : list_of_press) {
+							game.addRobot(n.getKey());
+					
+					
+//					for (node_data n : list_of_press) {
+//						Robot r = new Robot();
+//						r.setLocation(n.getLocation());
+						g.setColor(Color.blue);
+						g.fillOval(n.getLocation().ix() - BIGGER, n.getLocation().iy() - BIGGER,
+								(int)2.5*BIGGER, (int)2.5*BIGGER);
+//					}
+						}
+					}
+				}
+				
+			}
+			t.sleep(100);
+		} catch (InterruptedException e) {
 			e.printStackTrace();
-
 		}
 
-		///////////////////////start game///////////////////////////
+		/*if(NUMBER) {
+		this.setSize(500, 150);
+		this.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+		g.setColor(Color.BLACK);
+		g.drawString("Choose your Senario Number from 0 to 23", 100, 100);
+	}
+	NUMBER = false;*/
 
-		game.startGame();
-		/////////////////////////////////////enter robots to our gragh
-
-		Iterator<String> r_iter = game.getRobots().iterator();
-
-		while(r_iter.hasNext()) {
-
-			line = new JSONObject(r_iter.next());
-
-			JSONObject ro = line.getJSONObject("Robot");
-			Robot ans=new Robot(ro.getInt("id"),ro.getInt("value"),ro.getInt("src"),ro.getInt("dest"),ro.getInt("speed"),ro.getString("pos"));
-			gg.addrobot(ans);
-		}	
-
-		///////first gui show///////////////////////////
-
-		Graph_gui gu = new Graph_gui();
-
-		gu.addGraph(gg);
-
-		gu.setVisible(true);
-
-		// should be a Thread!!!
-
-		Move m = new Move(game, gg, gu);
-
-		while(game.isRunning()) {
-
-			/////////////////////////////////////where each robot move////////////////
-			m.run();
-		}
-
-		////////////////////////////////////////end game/////////////
-
-		String results = game.toString();
-
-		System.out.println("Game Over: "+results);
 
 	}
 
-	private static boolean check_on_line(Point3D p, Point3D src, Point3D dest) {
-		double e = 0.0000001;
-		if((src.distance2D(p)+p.distance2D(dest)-src.distance2D(dest)) < e) return true;
-		return false;
+	@Override
+
+	public void actionPerformed(ActionEvent action) {
+		String s = action.getActionCommand();
+
+		switch(s) {
+
+		case "Senario Number":
+			NUMBER = true;
+			int rs = 1;
+			int scenario = choose_num();
+			
+			repaint();
+			break;
+
+		case "Manual Game":
+			MANU = true;
+
+			repaint();
+			break;
+
+		case "Automatic Game":
+			AUTO = true;
+
+			repaint();
+			break;
+		}
+
 	}
+
+	@Override
+	public void mouseDragged(MouseEvent m_e) {
+	}
+
+	@Override
+	public void mouseMoved(MouseEvent m_e) {
+	}
+
+	@Override
+	public void mouseClicked(MouseEvent m_e) {
+	}
+
+	@Override
+	public void mousePressed(MouseEvent m_e) {
+		int x = m_e.getX();
+		int y = m_e.getY();
+		Point3D tmp = new Point3D(x, y);
+		int min_dist = (int)(BIGGER * 1.5);
+		double best_dist = 10000;
+		for (node_data nd : dg.Vertex) {
+			Point3D p = nd.getLocation();
+			double dist = tmp.distance3D(p);
+			if (dist < min_dist && dist < best_dist) {
+				best_dist = dist;
+				point_pressed = p;
+			}
+		}
+		for (node_data nd : dg.Vertex) {
+			if(point_pressed == nd.getLocation()) {
+				list_of_press.add(nd);
+				System.out.println(nd.getKey());
+			}
+		}
+	}
+
+	@Override
+	public void mouseReleased(MouseEvent m_r) {
+	}
+
+	@Override
+	public void mouseEntered(MouseEvent m_e) {
+	}
+
+	@Override
+	public void mouseExited(MouseEvent m_e) {
+	}
+
+	public void addGraph(DGraph dg1) {
+		this.dg = dg1;
+		this.repaint();
+	}
+
+	///////////////////////////////
+	/// *** private methods *** ///
+	///////////////////////////////
+
+	/**
+	 * @param start
+	 * @param fin
+	 * @param proportion
+	 * 
+	 * @return the result
+	 */
+	private int drawOnLine(double start, double fin, double proportion) {
+		return (int)(start + proportion*(fin-start));
+	}
+
+	private int number_robots(game_service game) {
+		String info = game.toString();
+		System.out.println(info);
+		JSONObject line;
+		int rs = -1;//num of robots
+		try {
+			////info of game
+			line = new JSONObject(info);
+			JSONObject ttt = line.getJSONObject("GameServer");
+			rs = ttt.getInt("robots"); //num of robots
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
+//		if()
+		return 0;
+	}		
+
+	private int choose_num() {
+		
+		return 0;	
+	}
+
 
 }
