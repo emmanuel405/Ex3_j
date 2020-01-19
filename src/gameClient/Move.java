@@ -8,7 +8,6 @@ import java.util.List;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import GUI.Graph_gui;
 import Server.game_service;
 import algorithms.Graph_Algo;
 import dataStructure.DGraph;
@@ -79,6 +78,7 @@ public class Move implements Runnable {
 				}
 				catch (JSONException e) {e.printStackTrace();}
 			}
+
 		}
 
 	}
@@ -90,7 +90,7 @@ public class Move implements Runnable {
 	}
 
 	/**
-	 * implementation imanuel algo!
+	 * implementation manuel algo!
 	 * @param g
 	 * @param src
 	 * @return
