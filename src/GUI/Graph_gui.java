@@ -11,6 +11,7 @@ import Server.Game_Server;
 import Server.game_service;
 
 import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -23,22 +24,24 @@ import utils.Point3D;
 
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.concurrent.TimeoutException;
 
 public class Graph_gui extends JFrame implements ActionListener, MouseListener, MouseMotionListener{
 	Thread t;
 	game_service game;
-	int rs;
-	public DGraph dg = null;
+	DGraph dg;
 	Graph_Algo g_a = new Graph_Algo(dg);
 	Point3D point_pressed = null;
 	public LinkedList<node_data> list_of_press = new LinkedList<node_data>();
-	LinkedList<Point3D> node_loc = new LinkedList<Point3D>();
+	LinkedList<Point3D> node_loc = new LinkedList<Point3D>();	
+	int num_robots;
+	int scenario;
 
 	boolean AUTO = false;
 	boolean MANU = false;
 	boolean NUMBER = false;
 
-	private int BIGGER = 5;
+	private final int BIGGER = 5;
 
 	public Graph_gui() {
 		initGUI();
@@ -57,13 +60,12 @@ public class Graph_gui extends JFrame implements ActionListener, MouseListener, 
 		item.addActionListener(this);
 		MenuItem item1 = new MenuItem("Automatic Game");
 		item1.addActionListener(this);
-		MenuItem item2 = new MenuItem("Senario Number");
+		MenuItem item2 = new MenuItem("Scenario Number");
 		item2.addActionListener(this);
 
 		m.add(item2);
 		m.add(item);
 		m.add(item1);
-
 
 		this.addMouseListener(this);
 	}
@@ -72,6 +74,8 @@ public class Graph_gui extends JFrame implements ActionListener, MouseListener, 
 		super.paint(g);
 		g.setColor(Color.BLACK);
 		g.drawString("בס''ד", 950, 70);
+
+		start_of_game();
 
 		if (null == dg) return;
 
@@ -99,7 +103,7 @@ public class Graph_gui extends JFrame implements ActionListener, MouseListener, 
 							drawOnLine(n.getLocation().y(), m.getLocation().y(), 0.85), 4, 4);
 				}
 			}
-
+			fruitEdge();
 			//////////////append fruits
 			for (Fruit n : dg.Fruits) {
 				g.setColor(Color.orange);
@@ -107,169 +111,254 @@ public class Graph_gui extends JFrame implements ActionListener, MouseListener, 
 						(int)2.5*BIGGER, (int)2.5*BIGGER);
 			}
 
-			// The player press on Automatic or Manual Game
+			/*// The player press on Automatic or Manual Game
 			if(AUTO || MANU) {
-				if(AUTO) {
-					//////////////append robots
-					for (Robot n : dg.Robots) {
-						g.setColor(Color.blue);
-						g.fillOval(n.getLocation().ix() - BIGGER, n.getLocation().iy() - BIGGER,
-								(int)2.5*BIGGER, (int)2.5*BIGGER);
-					}
-				}	
-				else {
-					while(MANU) {
-						if (list_of_press.size() == rs) MANU = false;
-						for (node_data n : list_of_press) {
-							game.addRobot(n.getKey());
-					
-					
-//					for (node_data n : list_of_press) {
-//						Robot r = new Robot();
-//						r.setLocation(n.getLocation());
-						g.setColor(Color.blue);
-						g.fillOval(n.getLocation().ix() - BIGGER, n.getLocation().iy() - BIGGER,
-								(int)2.5*BIGGER, (int)2.5*BIGGER);
-//					}
-						}
-					}
-				}
-				
-			}
+				if(AUTO) paintAutomatic();
+				else paintManual();
+			}*/
 			t.sleep(100);
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
 
-		/*if(NUMBER) {
-		this.setSize(500, 150);
-		this.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-		g.setColor(Color.BLACK);
-		g.drawString("Choose your Senario Number from 0 to 23", 100, 100);
-	}
-	NUMBER = false;*/
-
-
 	}
 
-	@Override
+	private void fruitEdge() {
+		/**
+		 * I want to know where are the fruit in which edge. 
+		 * so I have a location of all fruits, and I put in ed list
+		 * the edge has a fruit on him.
+		 * 
+		 */
+		LinkedList<edge_data> ed = new LinkedList<edge_data>();//the edges of fruits
+		Iterator<Fruit> fruit = dg.Fruits.iterator();
+		while(fruit.hasNext()) {
+			Fruit a=fruit.next();
+			Point3D p = a.getLocation();
+			for (node_data nd : dg.Vertex) {
+				NodeData n = (NodeData)nd;
 
-	public void actionPerformed(ActionEvent action) {
-		String s = action.getActionCommand();
+				for (NodeData nd1 : n.outgoing) {
+					Point3D dest=	nd1.getLocation();						
+					if(check_on_line(p, n.location, dest)) {
+						if (a.type==1) {
+							if (n.getKey()< nd1.getKey()) {
+								a.ed=new edgeData(n.getKey(), nd1.getKey());
+							}}
+						if (a.type==-1) {
+							if (n.getKey()> nd1.getKey()) {
+								a.ed=new edgeData(nd1.getKey(), n.getKey());
 
-		switch(s) {
-
-		case "Senario Number":
-			NUMBER = true;
-			int rs = 1;
-			int scenario = choose_num();
-			
-			repaint();
-			break;
-
-		case "Manual Game":
-			MANU = true;
-
-			repaint();
-			break;
-
-		case "Automatic Game":
-			AUTO = true;
-
-			repaint();
-			break;
-		}
-
-	}
-
-	@Override
-	public void mouseDragged(MouseEvent m_e) {
-	}
-
-	@Override
-	public void mouseMoved(MouseEvent m_e) {
-	}
-
-	@Override
-	public void mouseClicked(MouseEvent m_e) {
-	}
-
-	@Override
-	public void mousePressed(MouseEvent m_e) {
-		int x = m_e.getX();
-		int y = m_e.getY();
-		Point3D tmp = new Point3D(x, y);
-		int min_dist = (int)(BIGGER * 1.5);
-		double best_dist = 10000;
-		for (node_data nd : dg.Vertex) {
-			Point3D p = nd.getLocation();
-			double dist = tmp.distance3D(p);
-			if (dist < min_dist && dist < best_dist) {
-				best_dist = dist;
-				point_pressed = p;
+							}}
+					}
+					else continue;
+				}
 			}
 		}
-		for (node_data nd : dg.Vertex) {
-			if(point_pressed == nd.getLocation()) {
-				list_of_press.add(nd);
-				System.out.println(nd.getKey());
-			}
-		}
+		
 	}
 
-	@Override
-	public void mouseReleased(MouseEvent m_r) {
+	private static boolean check_on_line(Point3D p, Point3D src, Point3D dest) {
+		double e = 0.0000001;
+		if((src.distance2D(p)+p.distance2D(dest)-src.distance2D(dest)) < e) return true;
+		return false;
 	}
 
-	@Override
-	public void mouseEntered(MouseEvent m_e) {
-	}
-
-	@Override
-	public void mouseExited(MouseEvent m_e) {
-	}
-
-	public void addGraph(DGraph dg1) {
-		this.dg = dg1;
-		this.repaint();
-	}
-
-	///////////////////////////////
-	/// *** private methods *** ///
-	///////////////////////////////
-
-	/**
-	 * @param start
-	 * @param fin
-	 * @param proportion
-	 * 
-	 * @return the result
-	 */
-	private int drawOnLine(double start, double fin, double proportion) {
-		return (int)(start + proportion*(fin-start));
-	}
-
-	private int number_robots(game_service game) {
+	private void start_of_game() {
+		game = Game_Server.getServer(scenario);
+		String g = game.getGraph();
+		dg = new DGraph();
+		/////////////////////////first push to gragh
+		dg.init(g);
 		String info = game.toString();
 		System.out.println(info);
 		JSONObject line;
-		int rs = -1;//num of robots
+		num_robots = 0;
+
 		try {
 			////info of game
 			line = new JSONObject(info);
 			JSONObject ttt = line.getJSONObject("GameServer");
-			rs = ttt.getInt("robots"); //num of robots
+			num_robots = ttt.getInt("robots");	//num of robots
+			
+			Iterator<String> f_iter = game.getFruits().iterator();
+			while(f_iter.hasNext()) {
+				line = new JSONObject(f_iter.next());
+				JSONObject fru = line.getJSONObject("Fruit");
+				Fruit ans=new Fruit(fru.getDouble("value"),fru.getInt("type"),fru.getString("pos"));
+				dg.addfruit(ans);
+			}
+
 		} catch (JSONException e) {
 			e.printStackTrace();
 		}
-//		if()
-		return 0;
-	}		
-
-	private int choose_num() {
 		
-		return 0;	
+		
+		/*try {
+			t.wait();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}*/
+		
+	/*	// The player press on Automatic or Manual Game
+		if(AUTO || MANU) {
+			if(AUTO) paintAutomatic();
+			else paintManual();
+		}*/
+		
+		game.startGame();
+		
 	}
 
+	private void paintAutomatic() {
+		///spread the robots on server gragh
+		int pizur = dg.Vertex.size() / num_robots;
+		int stati = pizur;
 
-}
+		for(int a = 0; a<num_robots; a++) {
+			game.addRobot((pizur-1) % dg.Vertex.size());
+			pizur += stati;
+		}
+
+		//////////////append robots
+		for (Robot n : dg.Robots) {
+			g.setColor(Color.blue);
+			g.fillOval(n.getLocation().ix() - BIGGER, n.getLocation().iy() - BIGGER,
+					(int)2.5*BIGGER, (int)2.5*BIGGER);
+		}
+	}
+
+	private void paintManual() {
+		while(list_of_press.size() != 0) {
+			Robot r = new Robot();
+			r.setLocation(list_of_press.get(0).getLocation());
+			game.addRobot(list_of_press.get(0).getKey());
+			g.setColor(Color.blue);
+			g.fillOval(list_of_press.get(0).getLocation().ix() - BIGGER, list_of_press.get(0).getLocation().iy() - BIGGER,
+					(int)2.5*BIGGER, (int)2.5*BIGGER);
+			list_of_press.remove(0);
+
+		}
+
+		@Override
+
+		public void actionPerformed(ActionEvent action) {
+			String s = action.getActionCommand();
+
+			switch(s) {
+
+			case "Scenario Number":
+				NUMBER = true;
+				try {
+					choose_num();
+				} catch (TimeoutException e) {
+					e.printStackTrace();
+				}
+				NUMBER = false;
+				break;
+
+			case "Manual Game":
+				MANU = true;
+				oneOfThem();
+
+				repaint();
+				paintManual();
+
+				break;
+
+			case "Automatic Game":
+				AUTO = true;
+				oneOfThem();
+				repaint();
+				paintAutomatic();
+
+				break;
+			}
+
+		}
+
+		private void choose_num() throws TimeoutException {
+			if(NUMBER) {
+				String input = JOptionPane.showInputDialog(null, "Please choose scenario between 0 and 23.");
+				try {
+					scenario = Integer.parseInt(input);
+				} catch(Exception e) {
+					throw new TimeoutException("Is not an integer !!");
+				}
+			}
+		}
+
+		@Override
+		public void mouseDragged(MouseEvent m_e) {
+		}
+
+		@Override
+		public void mouseMoved(MouseEvent m_e) {
+		}
+
+		@Override
+		public void mouseClicked(MouseEvent m_e) {
+		}
+
+		@Override
+		public void mousePressed(MouseEvent m_e) {
+			int x = m_e.getX();
+			int y = m_e.getY();
+			Point3D tmp = new Point3D(x, y);
+			int min_dist = (int)(BIGGER * 1.5);
+			double best_dist = 10000;
+			for (node_data nd : dg.Vertex) {
+				Point3D p = nd.getLocation();
+				double dist = tmp.distance3D(p);
+				if (dist < min_dist && dist < best_dist) {
+					best_dist = dist;
+					point_pressed = p;
+				}
+			}
+			for (node_data nd : dg.Vertex) {
+				if(point_pressed == nd.getLocation()) {
+					list_of_press.add(nd);
+					System.out.println(nd.getKey());
+				}
+			}
+		}
+
+		@Override
+		public void mouseReleased(MouseEvent m_r) {
+		}
+
+		@Override
+		public void mouseEntered(MouseEvent m_e) {
+		}
+
+		@Override
+		public void mouseExited(MouseEvent m_e) {
+		}
+
+		public void addGraph(DGraph dg1) {
+			this.dg = dg1;
+			this.repaint();
+		}
+
+		///////////////////////////////
+		/// *** private methods *** ///
+		///////////////////////////////
+
+		/**
+		 * @param start
+		 * @param fin
+		 * @param proportion
+		 * 
+		 * @return the result
+		 */
+		private int drawOnLine(double start, double fin, double proportion) {
+			return (int)(start + proportion*(fin-start));
+		}
+
+		private void oneOfThem() {
+			if(MANU) AUTO = false;
+			if(AUTO) MANU  = false;
+		}
+
+
+	}
