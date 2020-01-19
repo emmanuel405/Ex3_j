@@ -85,7 +85,6 @@ public class Graph_gui extends JFrame implements ActionListener, MouseListener, 
 			} catch (TimeoutException e) {
 				e.printStackTrace();
 			}
-			repaint();
 			break;
 
 		case "Manual Game":
@@ -158,7 +157,11 @@ public class Graph_gui extends JFrame implements ActionListener, MouseListener, 
 		}
 
 	}
+/**********************************************************************************************************
 
+###########################################################################################################
+	
+***********************************************************************************************************/
 	private void fruitEdge() {
 		/**
 		 * I want to know where are the fruit in which edge. 
@@ -199,7 +202,17 @@ public class Graph_gui extends JFrame implements ActionListener, MouseListener, 
 		if((src.distance2D(p)+p.distance2D(dest)-src.distance2D(dest)) < e) return true;
 		return false;
 	}
+/**********************************************************************************************************
 
+###########################################################################################################
+		
+***********************************************************************************************************/
+	
+	/**
+	 * 
+	 * 
+	 * 
+	 */
 	private void start_of_game() {
 		game = Game_Server.getServer(scenario);
 		String g = game.getGraph();
@@ -230,10 +243,10 @@ public class Graph_gui extends JFrame implements ActionListener, MouseListener, 
 		}
 
 		paintRobots();
-		
+
 		game.startGame();
 
-		Move m = new Move(game, dg, this);
+		Move m = new Move(game, dg);
 		while(game.isRunning()) {
 			/////////////////////////////////////where each robot move////////////////
 			m.run();
@@ -252,8 +265,14 @@ public class Graph_gui extends JFrame implements ActionListener, MouseListener, 
 			else Manual_Robots();
 		}
 		CAN_PRINT_ROBOT = true;
+		repaint();
 	}
 
+	/**
+	 * with iterator we pass on the string that represents robots.
+	 * and pass to Json object, and add robot to 'dg'
+	 * 
+	 */
 	private void Automatic_Robots() {
 		Iterator<String> r_iter = game.getRobots().iterator();
 		JSONObject line;
@@ -283,20 +302,10 @@ public class Graph_gui extends JFrame implements ActionListener, MouseListener, 
 			game.addRobot(list_of_press.get(r).getKey());
 	}
 
-
-
-	@Override
-	public void mouseDragged(MouseEvent m_e) {
-	}
-
-	@Override
-	public void mouseMoved(MouseEvent m_e) {
-	}
-
-	@Override
-	public void mouseClicked(MouseEvent m_e) {
-	}
-
+	/**
+	 * we press on the screen so we take a node that best near the point of pressing
+	 * and we put them to 'list_of_press'
+	 */
 	@Override
 	public void mousePressed(MouseEvent m_e) {
 		int x = m_e.getX();
@@ -320,17 +329,6 @@ public class Graph_gui extends JFrame implements ActionListener, MouseListener, 
 		}
 	}
 
-	@Override
-	public void mouseReleased(MouseEvent m_r) {
-	}
-
-	@Override
-	public void mouseEntered(MouseEvent m_e) {
-	}
-
-	@Override
-	public void mouseExited(MouseEvent m_e) {
-	}
 
 	public void addGraph(DGraph dg1) {
 		this.dg = dg1;
@@ -345,27 +343,52 @@ public class Graph_gui extends JFrame implements ActionListener, MouseListener, 
 	 * @param start
 	 * @param fin
 	 * @param proportion
-	 * 
-	 * @return the result
+	 * we want to draw on line with a direction of vector
+	 *
 	 */
 	private int drawOnLine(double start, double fin, double proportion) {
 		return (int)(start + proportion*(fin-start));
 	}
 
+	/**
+	 * only one of them can be true,
+	 * cause or the game is in automatic or manual
+	 */
 	private void oneOfThem() {
 		if(MANU) AUTO = false;
 		if(AUTO) MANU  = false;
 	}
 
+	/**
+	 * we choose a number of scenario => 0-23
+	 * else choose again.
+	 * @throws TimeoutException
+	 */
 	private void choose_num() throws TimeoutException {
 		if(NUMBER) {
-			String input = JOptionPane.showInputDialog(null, "Please choose scenario between 0 and 23.");
+			String input = JOptionPane.showInputDialog(null, "Please choose scenario between 0 and 23\nYour choice:");
 			try {
 				scenario = Integer.parseInt(input);
 			} catch(Exception e) {
-				throw new TimeoutException("Is not an integer !!");
+				throw new TimeoutException("Is not an Integer !!");
+			}
+			if(0 > scenario || scenario > 23) {
+				choose_num();
 			}
 		}
 	}
 
+
+	@Override
+	public void mouseDragged(MouseEvent m_e) {;}
+	@Override
+	public void mouseMoved(MouseEvent m_e) {;}
+	@Override
+	public void mouseClicked(MouseEvent m_e) {;}
+	@Override
+	public void mouseReleased(MouseEvent m_r) {;}
+	@Override
+	public void mouseEntered(MouseEvent m_e) {;}
+	@Override
+	public void mouseExited(MouseEvent m_e) {;}
 }
