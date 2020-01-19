@@ -19,6 +19,7 @@ import org.json.JSONObject;
 import algorithms.Graph_Algo;
 import dataStructure.*;
 import gameClient.Fruit;
+import gameClient.Move;
 import gameClient.Robot;
 import utils.Point3D;
 
@@ -37,6 +38,7 @@ public class Graph_gui extends JFrame implements ActionListener, MouseListener, 
 	int num_robots;
 	int scenario;
 
+	boolean CAN_PRINT_ROBOT = false;
 	boolean AUTO = false;
 	boolean MANU = false;
 	boolean NUMBER = false;
@@ -70,12 +72,43 @@ public class Graph_gui extends JFrame implements ActionListener, MouseListener, 
 		this.addMouseListener(this);
 	}
 
+	@Override
+	public void actionPerformed(ActionEvent action) {
+		String s = action.getActionCommand();
+
+		switch(s) {
+
+		case "Scenario Number":
+			NUMBER = true;
+			try {
+				choose_num();
+			} catch (TimeoutException e) {
+				e.printStackTrace();
+			}
+			repaint();
+			break;
+
+		case "Manual Game":
+			MANU = true;
+			oneOfThem();
+			start_of_game();
+
+			break;
+
+		case "Automatic Game":
+			AUTO = true;
+			oneOfThem();
+			start_of_game();
+
+			break;
+		}
+
+	}
+
 	public void paint(Graphics g) {
 		super.paint(g);
 		g.setColor(Color.BLACK);
 		g.drawString("בס''ד", 950, 70);
-
-		start_of_game();
 
 		if (null == dg) return;
 
@@ -110,12 +143,15 @@ public class Graph_gui extends JFrame implements ActionListener, MouseListener, 
 				g.fillOval(n.getLocation().ix() - BIGGER, n.getLocation().iy() - BIGGER,
 						(int)2.5*BIGGER, (int)2.5*BIGGER);
 			}
+			if(CAN_PRINT_ROBOT) {
+				//////////////append robots
+				for (Robot n : dg.Robots) {
+					g.setColor(Color.blue);
+					g.fillOval(n.getLocation().ix() - BIGGER, n.getLocation().iy() - BIGGER,
+							(int)2.5*BIGGER, (int)2.5*BIGGER);
+				}
+			}
 
-			/*// The player press on Automatic or Manual Game
-			if(AUTO || MANU) {
-				if(AUTO) paintAutomatic();
-				else paintManual();
-			}*/
 			t.sleep(100);
 		} catch (InterruptedException e) {
 			e.printStackTrace();
@@ -155,7 +191,7 @@ public class Graph_gui extends JFrame implements ActionListener, MouseListener, 
 				}
 			}
 		}
-		
+
 	}
 
 	private static boolean check_on_line(Point3D p, Point3D src, Point3D dest) {
@@ -180,7 +216,7 @@ public class Graph_gui extends JFrame implements ActionListener, MouseListener, 
 			line = new JSONObject(info);
 			JSONObject ttt = line.getJSONObject("GameServer");
 			num_robots = ttt.getInt("robots");	//num of robots
-			
+
 			Iterator<String> f_iter = game.getFruits().iterator();
 			while(f_iter.hasNext()) {
 				line = new JSONObject(f_iter.next());
@@ -192,25 +228,45 @@ public class Graph_gui extends JFrame implements ActionListener, MouseListener, 
 		} catch (JSONException e) {
 			e.printStackTrace();
 		}
-		
-		
-		/*try {
-			t.wait();
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}*/
-		
-	/*	// The player press on Automatic or Manual Game
-		if(AUTO || MANU) {
-			if(AUTO) paintAutomatic();
-			else paintManual();
-		}*/
+
+		paintRobots();
 		
 		game.startGame();
-		
+
+		Move m = new Move(game, dg, this);
+		while(game.isRunning()) {
+			/////////////////////////////////////where each robot move////////////////
+			m.run();
+		}
+
+		////////////////////////////////////////end game/////////////
+		String results = game.toString();
+		System.out.println("Game Over: "+results);
+
 	}
 
-	private void paintAutomatic() {
+	private void paintRobots() {
+		// The player press on Automatic or Manual Game
+		if(AUTO || MANU) {
+			if(AUTO) Automatic_Robots();
+			else Manual_Robots();
+		}
+		CAN_PRINT_ROBOT = true;
+	}
+
+	private void Automatic_Robots() {
+		Iterator<String> r_iter = game.getRobots().iterator();
+		JSONObject line;
+		while(r_iter.hasNext()) {
+			try {
+				line = new JSONObject(r_iter.next());
+				JSONObject ro = line.getJSONObject("Robot");
+				Robot ans = new Robot(ro.getInt("id"),ro.getInt("value"),ro.getInt("src"),ro.getInt("dest"),ro.getInt("speed"),ro.getString("pos"));
+				dg.addrobot(ans);
+			} catch (JSONException e) {
+				e.printStackTrace();
+			}	
+		}	
 		///spread the robots on server gragh
 		int pizur = dg.Vertex.size() / num_robots;
 		int stati = pizur;
@@ -220,145 +276,96 @@ public class Graph_gui extends JFrame implements ActionListener, MouseListener, 
 			pizur += stati;
 		}
 
-		//////////////append robots
-		for (Robot n : dg.Robots) {
-			g.setColor(Color.blue);
-			g.fillOval(n.getLocation().ix() - BIGGER, n.getLocation().iy() - BIGGER,
-					(int)2.5*BIGGER, (int)2.5*BIGGER);
+	}
+
+	private void Manual_Robots() {
+		for(int r = 0; r<num_robots; r++)
+			game.addRobot(list_of_press.get(r).getKey());
+	}
+
+
+
+	@Override
+	public void mouseDragged(MouseEvent m_e) {
+	}
+
+	@Override
+	public void mouseMoved(MouseEvent m_e) {
+	}
+
+	@Override
+	public void mouseClicked(MouseEvent m_e) {
+	}
+
+	@Override
+	public void mousePressed(MouseEvent m_e) {
+		int x = m_e.getX();
+		int y = m_e.getY();
+		Point3D tmp = new Point3D(x, y);
+		int min_dist = (int)(BIGGER * 1.5);
+		double best_dist = 10000;
+		for (node_data nd : dg.Vertex) {
+			Point3D p = nd.getLocation();
+			double dist = tmp.distance3D(p);
+			if (dist < min_dist && dist < best_dist) {
+				best_dist = dist;
+				point_pressed = p;
+			}
+		}
+		for (node_data nd : dg.Vertex) {
+			if(point_pressed == nd.getLocation()) {
+				list_of_press.add(nd);
+				System.out.println(nd.getKey());
+			}
 		}
 	}
 
-	private void paintManual() {
-		while(list_of_press.size() != 0) {
-			Robot r = new Robot();
-			r.setLocation(list_of_press.get(0).getLocation());
-			game.addRobot(list_of_press.get(0).getKey());
-			g.setColor(Color.blue);
-			g.fillOval(list_of_press.get(0).getLocation().ix() - BIGGER, list_of_press.get(0).getLocation().iy() - BIGGER,
-					(int)2.5*BIGGER, (int)2.5*BIGGER);
-			list_of_press.remove(0);
-
-		}
-
-		@Override
-
-		public void actionPerformed(ActionEvent action) {
-			String s = action.getActionCommand();
-
-			switch(s) {
-
-			case "Scenario Number":
-				NUMBER = true;
-				try {
-					choose_num();
-				} catch (TimeoutException e) {
-					e.printStackTrace();
-				}
-				NUMBER = false;
-				break;
-
-			case "Manual Game":
-				MANU = true;
-				oneOfThem();
-
-				repaint();
-				paintManual();
-
-				break;
-
-			case "Automatic Game":
-				AUTO = true;
-				oneOfThem();
-				repaint();
-				paintAutomatic();
-
-				break;
-			}
-
-		}
-
-		private void choose_num() throws TimeoutException {
-			if(NUMBER) {
-				String input = JOptionPane.showInputDialog(null, "Please choose scenario between 0 and 23.");
-				try {
-					scenario = Integer.parseInt(input);
-				} catch(Exception e) {
-					throw new TimeoutException("Is not an integer !!");
-				}
-			}
-		}
-
-		@Override
-		public void mouseDragged(MouseEvent m_e) {
-		}
-
-		@Override
-		public void mouseMoved(MouseEvent m_e) {
-		}
-
-		@Override
-		public void mouseClicked(MouseEvent m_e) {
-		}
-
-		@Override
-		public void mousePressed(MouseEvent m_e) {
-			int x = m_e.getX();
-			int y = m_e.getY();
-			Point3D tmp = new Point3D(x, y);
-			int min_dist = (int)(BIGGER * 1.5);
-			double best_dist = 10000;
-			for (node_data nd : dg.Vertex) {
-				Point3D p = nd.getLocation();
-				double dist = tmp.distance3D(p);
-				if (dist < min_dist && dist < best_dist) {
-					best_dist = dist;
-					point_pressed = p;
-				}
-			}
-			for (node_data nd : dg.Vertex) {
-				if(point_pressed == nd.getLocation()) {
-					list_of_press.add(nd);
-					System.out.println(nd.getKey());
-				}
-			}
-		}
-
-		@Override
-		public void mouseReleased(MouseEvent m_r) {
-		}
-
-		@Override
-		public void mouseEntered(MouseEvent m_e) {
-		}
-
-		@Override
-		public void mouseExited(MouseEvent m_e) {
-		}
-
-		public void addGraph(DGraph dg1) {
-			this.dg = dg1;
-			this.repaint();
-		}
-
-		///////////////////////////////
-		/// *** private methods *** ///
-		///////////////////////////////
-
-		/**
-		 * @param start
-		 * @param fin
-		 * @param proportion
-		 * 
-		 * @return the result
-		 */
-		private int drawOnLine(double start, double fin, double proportion) {
-			return (int)(start + proportion*(fin-start));
-		}
-
-		private void oneOfThem() {
-			if(MANU) AUTO = false;
-			if(AUTO) MANU  = false;
-		}
-
-
+	@Override
+	public void mouseReleased(MouseEvent m_r) {
 	}
+
+	@Override
+	public void mouseEntered(MouseEvent m_e) {
+	}
+
+	@Override
+	public void mouseExited(MouseEvent m_e) {
+	}
+
+	public void addGraph(DGraph dg1) {
+		this.dg = dg1;
+		this.repaint();
+	}
+
+	///////////////////////////////
+	/// *** private methods *** ///
+	///////////////////////////////
+
+	/**
+	 * @param start
+	 * @param fin
+	 * @param proportion
+	 * 
+	 * @return the result
+	 */
+	private int drawOnLine(double start, double fin, double proportion) {
+		return (int)(start + proportion*(fin-start));
+	}
+
+	private void oneOfThem() {
+		if(MANU) AUTO = false;
+		if(AUTO) MANU  = false;
+	}
+
+	private void choose_num() throws TimeoutException {
+		if(NUMBER) {
+			String input = JOptionPane.showInputDialog(null, "Please choose scenario between 0 and 23.");
+			try {
+				scenario = Integer.parseInt(input);
+			} catch(Exception e) {
+				throw new TimeoutException("Is not an integer !!");
+			}
+		}
+	}
+
+}
