@@ -27,20 +27,28 @@ import utils.Point3D;
  * @param log
  */
 
-class Move implements Runnable {
+public class Move implements Runnable {
 	Thread t;
-	Graph_gui gui;
 	game_service game;
-	DGraph gg;
+	DGraph gg = new DGraph();
 
-	public Move(game_service game, DGraph gg, Graph_gui gui) {
+	public Move(game_service game, DGraph gg) {
 		this.game = game;
 		this.gg = gg;
-		this.gui = gui;
+	}
+	
+	@Override
+	public void run() {
+		while(this.game.isRunning()) {
+			try {
+				moveRobots(this.game, this.gg);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+		}
 	}
 
 	private void moveRobots(game_service game, DGraph gg) throws InterruptedException {
-		t.sleep(100);
 		///move the robots 1 step
 		List<String> log = this.game.move();
 		if(log!=null) {
@@ -71,9 +79,6 @@ class Move implements Runnable {
 				}
 				catch (JSONException e) {e.printStackTrace();}
 			}
-
-			this.gui.addGraph(gg);
-			this.gui.setVisible(true);
 		}
 
 	}
@@ -174,7 +179,7 @@ class Move implements Runnable {
 								gg.getNode(fr.ed.getDest()));
 						this.gg.Robots.get(rid).dest=fr.ed.getDest();
 					}
-					
+
 				}
 				return this.gg.Robots.get(rid).path.get(0).getKey();
 
@@ -191,17 +196,6 @@ class Move implements Runnable {
 		double e = 0.0000001;
 		if((src.distance2D(p)+p.distance2D(dest)-src.distance2D(dest)) < e) return true;
 		return false;
-	}
-
-	@Override
-	public void run() {
-		while(this.game.isRunning()) {
-			try {
-				moveRobots(this.game, this.gg);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-		}
 	}
 
 
