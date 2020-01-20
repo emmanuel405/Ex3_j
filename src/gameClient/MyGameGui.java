@@ -267,8 +267,9 @@ public class MyGameGui extends JFrame implements ActionListener, MouseListener, 
 				pizur += stati;
 			}
 		}
-		game.startGame();
 		paintRobots();
+		game.startGame();
+		
 
 		Move m = new Move(game, dg);
 		while(game.isRunning()) {
