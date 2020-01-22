@@ -122,7 +122,6 @@ public class MyGameGui extends JFrame implements ActionListener, MouseListener, 
 			num_robots = 0;
 
 			try {
-				Thread.sleep(500);
 				////info of game
 				line = new JSONObject(info);
 				JSONObject ttt = line.getJSONObject("GameServer");
@@ -137,9 +136,6 @@ public class MyGameGui extends JFrame implements ActionListener, MouseListener, 
 				}
 
 			} catch (JSONException e) {e.printStackTrace();} 
-			catch (InterruptedException e) {
-				e.printStackTrace();
-			}
 		} ///*** if ***///
 
 		if(true) {
@@ -177,8 +173,9 @@ public class MyGameGui extends JFrame implements ActionListener, MouseListener, 
 			}
 
 			if(CAN_PRINT_ROBOT) {
-				System.out.println("dg: "+dg.Robots);
 				//////////////append robots
+				System.out.println("num_robots = "+num_robots);
+				System.out.println("num_dg_rob = "+dg.Robots.size());
 				for (Robot n : dg.Robots) {
 					g.setColor(Color.blue);
 					g.fillOval(n.getLocation().ix() - BIGGER, n.getLocation().iy() - BIGGER,
@@ -264,15 +261,15 @@ public class MyGameGui extends JFrame implements ActionListener, MouseListener, 
 			}
 		}
 		paintRobots();
+
 		game.startGame();
 
 		Move m = new Move(game, dg);
 		while(game.isRunning()) {
-
 			/////////////////////////////////////where each robot move////////////////
-			m.start();
+
 			try {
-				repaint();
+				m.start();
 				Thread.sleep(100);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
@@ -288,7 +285,7 @@ public class MyGameGui extends JFrame implements ActionListener, MouseListener, 
 	private void paintRobots() {
 		// The player press on Automatic or Manual Game
 		if(AUTO) Automatic_Robots();
-		else if(MANU) Manual_Robots();
+		else if(MANU) Manual_Robots(); // 315
 		CAN_PRINT_ROBOT = true;
 		FIRST = false;
 		repaint();
@@ -307,7 +304,6 @@ public class MyGameGui extends JFrame implements ActionListener, MouseListener, 
 				line = new JSONObject(r_iter.next());
 				JSONObject ro = line.getJSONObject("Robot");
 				Robot ans = new Robot(ro.getInt("id"),ro.getInt("value"),ro.getInt("src"),ro.getInt("dest"),ro.getInt("speed"),ro.getString("pos"));
-				System.out.println("ans = "+ans.id);
 				dg.addrobot(ans);
 			} catch (JSONException e) {
 				e.printStackTrace();
@@ -318,9 +314,17 @@ public class MyGameGui extends JFrame implements ActionListener, MouseListener, 
 
 	private void Manual_Robots() {
 		if(list_of_press != null && num_robots <= list_of_press.size()) {
-			for(int r = 0; r < num_robots; r++)
+			for(int r = 0; r < num_robots; r++) {
 				game.addRobot(list_of_press.get(r).getKey());
+				addToGraph(list_of_press.get(r).getKey());	
+			}
 		}
+	}
+
+	private void addToGraph(int key) {
+		Robot robot = new Robot();
+		robot.id = key;
+		dg.addrobot(robot);
 	}
 
 	/**
