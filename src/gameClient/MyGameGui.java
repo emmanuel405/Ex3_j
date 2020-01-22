@@ -198,11 +198,17 @@ public class MyGameGui extends JFrame implements ActionListener, MouseListener, 
 				g.setColor(Color.blue);
 				g.fillOval(robot.getLocation().ix() - BIGGER, robot.getLocation().iy() - BIGGER,
 						(int)2.5*BIGGER, (int)2.5*BIGGER);
-				this.log.Place_Mark("Robot", robot.getLocation().toString());
+				System.out.println("the - "+robot.getLocation().toString());
+				this.log.Place_Mark("Robot", (robot.getLocation().toString()));
 			}
 		}
 
 	}
+
+//	private String reverse(String string) {
+//		
+//		return null;
+//	}
 
 	/**
 	 * for starting the game:
