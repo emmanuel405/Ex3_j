@@ -2,7 +2,6 @@ package gameClient;
 
 import java.util.ArrayList;
 import java.util.Iterator;
-//import java.util.LinkedList;
 import java.util.List;
 
 import org.json.JSONException;
@@ -13,8 +12,6 @@ import algorithms.Graph_Algo;
 import dataStructure.DGraph;
 import dataStructure.NodeData;
 import dataStructure.edgeData;
-//import dataStructure.edge_data;
-//import dataStructure.graph;
 import dataStructure.node_data;
 import utils.Point3D;
 
@@ -84,7 +81,7 @@ public class Move extends Thread {
 					}
 					this.gg.Robots.get(rid).pos = ans;
 					//////////////////////////////////////////////
-					System.out.println(MyGameGui.log.kmltxt);
+//					System.out.println(MyGameGui.log.kmltxt);
 					///////////////////////////////////////////////
 
 				}
