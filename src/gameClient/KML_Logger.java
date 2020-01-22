@@ -5,86 +5,88 @@ import java.io.PrintWriter;
 import java.time.LocalDateTime;
 
 /**
- create  kml file to  view the game course in a specific level
-
+ create kml file to  view the game course in a specific level
  */
 class KML_Logger {
    
-    private int stage;//num level
+    private int scenario; //num of scenario
     public StringBuffer kmltxt;//contains the kml txt
 
     
-    KML_Logger(int level) {
-    	System.out.println("start");
-        this.stage = level;
+    KML_Logger(int scenario) {
+    	System.out.println("start;");
+        this.scenario = scenario;
         kmltxt = new StringBuffer();
         //KML_Play();
         _StartKML();
     }
     
-    
-    
     private void _StartKML(){
     	kmltxt.append(
-                "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n" +
-                        "<kml xmlns=\"http://earth.google.com/kml/2.2\">\r\n" +
-                        "  <Document>\r\n" +
-                        "    <name>" + "Game stage :"+stage + "</name>" +"\r\n"
-        );
+    			"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+    			+ "<kml xmlns=\"http://www.opengis.net/kml/2.2\">\n"
+    			+ "<name>" + "Game scenario: " + scenario + "</name>\n"
+    			);
     	_nodeKML();
     }
-   
-    
     
     private void _nodeKML(){
-    	kmltxt.append(" <Style id=\"node\">\r\n" +
-                "      <IconStyle>\r\n" +
-                "        <Icon>\r\n" +
-                "          <href>http://maps.google.com/mapfiles/kml/pal3/icon35.png</href>\r\n" +
-                "        </Icon>\r\n" +
-                "        <hotSpot x=\"32\" y=\"1\" xunits=\"pixels\" yunits=\"pixels\"/>\r\n" +
-                "      </IconStyle>\r\n" +
-                "    </Style>"
-        );
+    	kmltxt.append(
+    			"<Style id=\"node\">\n"
+    			+ 	"<IconStyle>\n"
+    			+ 		"<Icon>\n"
+    			+ 			"<href>"
+    			+ 				"http://maps.google.com/mapfiles/kml/pal5/icon11.png"
+    			+ 			"</href>\n"
+   				+ 		"</Icon>\r\n"
+   				+ 		"<hotSpot x=\"32\" y=\"1\" xunits=\"pixels\" yunits=\"pixels\"/>\n"
+   				+ 	"</IconStyle>\n"
+   				+ "</Style>"
+    			);
     	_FruitKML();
     }
     
-    
-    
     private void _FruitKML(){
     	kmltxt.append(
-                " <Style id=\"fruit_-1\">\r\n" +
-                        "      <IconStyle>\r\n" +
-                        "        <Icon>\r\n" +
-                        "          <href>http://maps.google.com/mapfiles/kml/paddle/purple-stars.png</href>\r\n" +
-                        "        </Icon>\r\n" +
-                        "        <hotSpot x=\"32\" y=\"1\" xunits=\"pixels\" yunits=\"pixels\"/>\r\n" +
-                        "      </IconStyle>\r\n" +
-                        "    </Style>" +
-                        " <Style id=\"fruit_1\">\r\n" +
-                        "      <IconStyle>\r\n" +
-                        "        <Icon>\r\n" +
-                        "          <href>http://maps.google.com/mapfiles/kml/paddle/red-stars.png</href>\r\n" +
-                        "        </Icon>\r\n" +
-                        "        <hotSpot x=\"32\" y=\"1\" xunits=\"pixels\" yunits=\"pixels\"/>\r\n" +
-                        "      </IconStyle>\r\n" +
-                        "    </Style>"
+    			// first style: type of fruit = -1
+                 "<Style id=\"fruit_-1\">\r\n"
+                + 	"<IconStyle>\n"
+                + 		"<Icon>\n"
+                + 			"<href>"
+                + 				"http://maps.google.com/mapfiles/kml/pal2/icon54.png"
+                + 			"</href>\r\n"
+                + 		"</Icon>\r\n"
+                + 		"<hotSpot x=\"32\" y=\"1\" xunits=\"pixels\" yunits=\"pixels\"/>\r\n"
+                + 	"</IconStyle>\r\n"
+                +"</Style>\n"
+                
+                // second style: type of fruit = 1
+                +"<Style id=\"fruit_1\">\r\n"
+                +	"<IconStyle>\r\n"
+                +		"<Icon>\r\n"
+                + 			"<href>"
+                + 				"http://maps.google.com/mapfiles/kml/pal2/icon55.png"
+                + 			"</href>\r\n"
+                + 		"</Icon>\r\n"
+                +		"<hotSpot x=\"32\" y=\"1\" xunits=\"pixels\" yunits=\"pixels\"/>\r\n"
+                + 	"</IconStyle>\r\n"
+                + "</Style>"
         );
     	_RobotKML();
     }
     
-    
-    
     private void _RobotKML(){
     	kmltxt.append(
-                " <Style id=\"robot\">\r\n" +
-                        "      <IconStyle>\r\n" +
-                        "        <Icon>\r\n" +
-                        "          <href>http://maps.google.com/mapfiles/kml/shapes/motorcycling.png></href>\r\n" +
-                        "        </Icon>\r\n" +
-                        "        <hotSpot x=\"32\" y=\"1\" xunits=\"pixels\" yunits=\"pixels\"/>\r\n" +
-                        "      </IconStyle>\r\n" +
-                        "    </Style>"
+                "<Style id=\"robot\">\r\n"
+                + 	"<IconStyle>\r\n"
+                + 		"<Icon>\r\n"
+                +			"<href>"
+                + 				"http://maps.google.com/mapfiles/kml/shapes/heliport.png"
+                + 			"</href>\r\n"
+                + 		"</Icon>\r\n"
+                + 		"<hotSpot x=\"32\" y=\"1\" xunits=\"pixels\" yunits=\"pixels\"/>\r\n"
+                + 	"</IconStyle>\r\n"
+                + "</Style>"
         );
     }
 
@@ -98,25 +100,36 @@ class KML_Logger {
     void Place_Mark(String id, String location) {
         LocalDateTime Present_time = LocalDateTime.now();
         kmltxt.append(
-                "    <Placemark>\r\n" +
-                        "      <TimeStamp>\r\n" +
-                        "        <when>" + Present_time+ "</when>\r\n" +
-                        "      </TimeStamp>\r\n" +
-                        "      <styleUrl>#" + id + "</styleUrl>\r\n" +
-                        "      <Point>\r\n" +
-                        "        <coordinates>" + location + "</coordinates>\r\n" +
-                        "      </Point>\r\n" +
-                        "    </Placemark>\r\n"
-        );
+        		 "<Placemark>"
+        		+ 	"<TimeStamp>"
+        		+ 		"<when>"
+        		+ 			Present_time 
+        		+ 		"</when>"
+        		+ 	"</TimeStamp>\n"
+        		+ 	"<name>"
+        		+ 		"Node"
+        		+	"</name>\n"
+        		+	"<styleUrl>"
+        		+		id
+        		+	"</styleUrl>\n"
+        		+ 	"<Point>"
+        		+ 		"<coordinates>"
+        		+ 			location
+        		+ 		"</coordinates>\n"
+        		+ 	"</Point>"
+        		+"</Placemark>"
+        		);
+       
     }
 
 ////////////////////////end
     
-    void KML_Stop()
-    {
+    void KML_Stop(){
 
-    	kmltxt.append("  \r\n</Document>\r\n" +
-                "</kml>");
+    	kmltxt.append(
+    			"</Document>\n"
+    			+"</kml>"
+    			);
         SaveFile();
     }
 
@@ -124,9 +137,8 @@ class KML_Logger {
      * save to file
      */
     private void SaveFile(){
-        try
-        {
-            File file=new File("data/"+"oz"+stage+".kml");
+        try{
+            File file=new File("data/"+"manu&oz"+scenario+".kml");
             PrintWriter pw=new PrintWriter(file);
             pw.write(kmltxt.toString());
             pw.close();
