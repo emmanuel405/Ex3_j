@@ -81,7 +81,7 @@ public class Move extends Thread {
 					}
 					this.gg.Robots.get(rid).pos = ans;
 					//////////////////////////////////////////////
-//					System.out.println(MyGameGui.log.kmltxt);
+					System.out.println(gu.log.kmltxt);
 					///////////////////////////////////////////////
 
 				}
