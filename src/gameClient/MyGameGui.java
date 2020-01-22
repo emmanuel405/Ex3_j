@@ -32,7 +32,7 @@ public class MyGameGui extends JFrame implements ActionListener, MouseListener, 
 	Point3D point_pressed = null;
 	public LinkedList<node_data> list_of_press = new LinkedList<node_data>();
 	LinkedList<Point3D> node_loc = new LinkedList<Point3D>();
-	public static KML_Logger log;
+	public KML_Logger log; // init after choose scenario number..line 92
 	int num_robots;
 	int scenario;
 
@@ -89,6 +89,7 @@ public class MyGameGui extends JFrame implements ActionListener, MouseListener, 
 				e.printStackTrace();
 			}
 			level_sleep = getSleep();
+			if(FIRST) this.log = new KML_Logger(scenario);
 			repaint();
 			break;
 
@@ -170,31 +171,34 @@ public class MyGameGui extends JFrame implements ActionListener, MouseListener, 
 			}
 		}
 		fruitEdge();
+		
+		/*
+		 * Place_Mark(String id, String location)
+		 */
+		
 		//////////////append fruits
-		for (Fruit n : dg.Fruits) {
-			if (n.type==-1) {
-				g.setColor(Color.orange);
-				g.fillOval(n.getLocation().ix() - BIGGER, n.getLocation().iy() - BIGGER,
+		for (Fruit fruit : dg.Fruits) {
+			if (fruit.type == -1) {
+				g.setColor(Color.GRAY);
+				g.fillOval(fruit.getLocation().ix() - BIGGER, fruit.getLocation().iy() - BIGGER,
 						(int)2.5*BIGGER, (int)2.5*BIGGER);
-				//				log.Place_Mark("fruit_-1", n.getLocation().toString());
+				if(!FIRST) this.log.Place_Mark("fruit_-1", fruit.getLocation().toString());
 			}
-			if (n.type==-1) {
-				g.setColor(Color.orange);
-
-				g.fillOval(n.getLocation().ix() - BIGGER, n.getLocation().iy() - BIGGER,
-
+			else if (fruit.type == 1) {
+				g.setColor(Color.YELLOW);
+				g.fillOval(fruit.getLocation().ix() - BIGGER, fruit.getLocation().iy() - BIGGER,
 						(int)2.5*BIGGER, (int)2.5*BIGGER);
-
-//				log.Place_Mark("fruit_1", n.getLocation().toString());
+				if(!FIRST) this.log.Place_Mark("fruit_1", fruit.getLocation().toString());
 			}
 		}
+		
 		if(CAN_PRINT_ROBOT) { // print the robbot after you choice about the type of game
 			//////////////append robots
-			for (Robot n : dg.Robots) {
+			for (Robot robot : dg.Robots) {
 				g.setColor(Color.blue);
-				g.fillOval(n.getLocation().ix() - BIGGER, n.getLocation().iy() - BIGGER,
+				g.fillOval(robot.getLocation().ix() - BIGGER, robot.getLocation().iy() - BIGGER,
 						(int)2.5*BIGGER, (int)2.5*BIGGER);
-//				this.log.Place_Mark("data/robot3.png", n.getLocation().toString());
+				this.log.Place_Mark("Robot", robot.getLocation().toString());
 			}
 		}
 
@@ -235,11 +239,12 @@ public class MyGameGui extends JFrame implements ActionListener, MouseListener, 
 				e.printStackTrace();
 			}
 		}
-
-
+		this.log.KML_End();
 		///////////////////end game/////////////
 		String results = game.toString();
+		
 		System.out.println("Game Over: "+results);
+		
 		game.stopGame();
 	}
 
@@ -248,14 +253,13 @@ public class MyGameGui extends JFrame implements ActionListener, MouseListener, 
 	 * @return long
 	 */
 	private long getSleep() {
-		if(0 <= scenario && scenario < 3) return 80; // 0 1 2
-		else if((3 <= scenario && scenario < 5) || (8 <= scenario && scenario < 10)) return 60; // 0 1 2
-		else if(5 <= scenario && scenario < 7 || scenario == 19) return 50;
-		else if(10 <= scenario && scenario < 12 || scenario == 20) return 100;
+		if(0 <= scenario && scenario < 3) return 80;
+		else if((3 <= scenario && scenario < 5) || (8 <= scenario && scenario < 10)) return 60;
+		else if((5 <= scenario && scenario < 7) || scenario == 19) return 50;
+		else if((10 <= scenario && scenario < 12) || scenario == 20) return 100;
 		else if(scenario == 14 || scenario == 17 || scenario == 18) return 70;
 		else if(scenario == 16) return 55;
 		else return 40;
-
 	}
 
 	/**
