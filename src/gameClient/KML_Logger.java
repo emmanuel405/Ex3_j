@@ -18,14 +18,14 @@ class KML_Logger {
         this.scenario = scenario;
         kmltxt = new StringBuffer();
         //KML_Play();
-        _StartKML();
+        StartOfKML();
     }
     
-    private void _StartKML(){
+    private void StartOfKML(){
     	kmltxt.append(
     			"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
     			+ "<kml xmlns=\"http://www.opengis.net/kml/2.2\">\n"
-    			+ "<name>" + "Game scenario: " + scenario + "</name>\n"
+    			+ "<name>" + "Game scenario: " + scenario + "</name>\n\n"
     			);
     	_nodeKML();
     }
@@ -35,13 +35,13 @@ class KML_Logger {
     			"<Style id=\"node\">\n"
     			+ 	"<IconStyle>\n"
     			+ 		"<Icon>\n"
-    			+ 			"<href>"
+    			+ 			"<href>\n"
     			+ 				"http://maps.google.com/mapfiles/kml/pal5/icon11.png"
     			+ 			"</href>\n"
    				+ 		"</Icon>\r\n"
    				+ 		"<hotSpot x=\"32\" y=\"1\" xunits=\"pixels\" yunits=\"pixels\"/>\n"
    				+ 	"</IconStyle>\n"
-   				+ "</Style>"
+   				+ "</Style>\n\n"
     			);
     	_FruitKML();
     }
@@ -69,24 +69,24 @@ class KML_Logger {
                 + 			"</href>\r\n"
                 + 		"</Icon>\r\n"
                 +		"<hotSpot x=\"32\" y=\"1\" xunits=\"pixels\" yunits=\"pixels\"/>\r\n"
-                + 	"</IconStyle>\r\n"
-                + "</Style>"
+                + 	"</IconStyle>\n"
+                + "</Style>\n\n"
         );
     	_RobotKML();
     }
     
     private void _RobotKML(){
     	kmltxt.append(
-                "<Style id=\"robot\">\r\n"
-                + 	"<IconStyle>\r\n"
-                + 		"<Icon>\r\n"
-                +			"<href>"
+                "<Style id=\"robot\">\n"
+                + 	"<IconStyle>\n"
+                + 		"<Icon>\n"
+                +			"<href>\n"
                 + 				"http://maps.google.com/mapfiles/kml/shapes/heliport.png"
-                + 			"</href>\r\n"
-                + 		"</Icon>\r\n"
-                + 		"<hotSpot x=\"32\" y=\"1\" xunits=\"pixels\" yunits=\"pixels\"/>\r\n"
-                + 	"</IconStyle>\r\n"
-                + "</Style>"
+                + 			"</href>\n"
+                + 		"</Icon>\n"
+                + 		"<hotSpot x=\"32\" y=\"1\" xunits=\"pixels\" yunits=\"pixels\"/>\n"
+                + 	"</IconStyle>\n"
+                + "</Style>\n\n"
         );
     }
 
@@ -98,52 +98,52 @@ class KML_Logger {
      * @param location
      */
     void Place_Mark(String id, String location) {
-        LocalDateTime Present_time = LocalDateTime.now();
+        LocalDateTime time = LocalDateTime.now();
         kmltxt.append(
-        		 "<Placemark>"
-        		+ 	"<TimeStamp>"
-        		+ 		"<when>"
-        		+ 			Present_time 
-        		+ 		"</when>"
+        		 "<Placemark>\n"
+        		+ 	"<TimeStamp>\n"
+        		+ 		"<when>\n"
+        		+ 			time 
+        		+ 		"</when>\n"
         		+ 	"</TimeStamp>\n"
-        		+ 	"<name>"
+        		+ 	"<name>\n"
         		+ 		"Node"
         		+	"</name>\n"
-        		+	"<styleUrl>"
-        		+		id
+        		+	"<styleUrl>\n"
+        		+			id
         		+	"</styleUrl>\n"
-        		+ 	"<Point>"
-        		+ 		"<coordinates>"
+        		+ 	"<Point>\n"
+        		+ 		"<coordinates>\n"
         		+ 			location
         		+ 		"</coordinates>\n"
-        		+ 	"</Point>"
-        		+"</Placemark>"
+        		+ 	"</Point>\n"
+        		+"</Placemark>\n\n"
         		);
        
     }
 
-////////////////////////end
-    
-    void KML_Stop(){
+    //////////////end
+    void KML_End(){
 
     	kmltxt.append(
     			"</Document>\n"
-    			+"</kml>"
+    			+"</kml>\n"
     			);
-        SaveFile();
+        System.out.println(SaveFile());
     }
 
     /**
      * save to file
      */
-    private void SaveFile(){
+    private boolean SaveFile(){
         try{
-            File file=new File("data/"+"manu&oz"+scenario+".kml");
-            PrintWriter pw=new PrintWriter(file);
-            pw.write(kmltxt.toString());
-            pw.close();
+            PrintWriter print = new PrintWriter(scenario+".kml");
+            print.write(kmltxt.toString());
+            print.close();
+            return true;
         } catch (Exception e) {
             e.printStackTrace();
+            return false;
         }
     }
 
