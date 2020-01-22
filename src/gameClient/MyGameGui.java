@@ -42,6 +42,7 @@ public class MyGameGui extends JFrame implements ActionListener, MouseListener, 
 	boolean NUMBER = false;
 
 	static int count = 0;
+	long level_sleep;
 	
 	boolean FIRST = true;
 
@@ -87,6 +88,7 @@ public class MyGameGui extends JFrame implements ActionListener, MouseListener, 
 			} catch (TimeoutException e) {
 				e.printStackTrace();
 			}
+			level_sleep = getSleep();
 			repaint();
 			break;
 
@@ -105,6 +107,8 @@ public class MyGameGui extends JFrame implements ActionListener, MouseListener, 
 		}
 
 	}
+
+	
 
 	public void paint(Graphics g) {
 		super.paint(g);
@@ -206,13 +210,13 @@ public class MyGameGui extends JFrame implements ActionListener, MouseListener, 
 		
 		game.startGame();
 
-		Move m = new Move(game, dg, this);
+		Move m = new Move(game, dg, this, level_sleep);
 		m.start();
 		
 		while(game.isRunning()) {
 			repaint();
 			try {
-				Thread.sleep(100);
+				Thread.sleep(level_sleep);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
@@ -223,6 +227,17 @@ public class MyGameGui extends JFrame implements ActionListener, MouseListener, 
 		String results = game.toString();
 		System.out.println("Game Over: "+results);
 		game.stopGame();
+	}
+
+	private long getSleep() {
+		if(0 <= scenario && scenario < 3) return 80; // 0 1 2
+		else if((3 <= scenario && scenario < 5) || (8 <= scenario && scenario < 10)) return 60; // 0 1 2
+		else if(5 <= scenario && scenario < 7 || scenario == 19) return 50;
+		else if(10 <= scenario && scenario < 12 || scenario == 20) return 100;
+		else if(scenario == 14 || scenario == 17 || scenario == 18) return 70;
+		else if(scenario == 16) return 55;
+		else return 40;
+		
 	}
 	
 	@Override
