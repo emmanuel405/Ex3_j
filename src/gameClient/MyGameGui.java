@@ -16,7 +16,6 @@ import javax.swing.JOptionPane;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import algorithms.Graph_Algo;
 import dataStructure.*;
 import gameClient.Fruit;
 import gameClient.Move;
@@ -27,14 +26,15 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.concurrent.TimeoutException;
 
-public class MyGameGui extends JFrame implements ActionListener, MouseListener, MouseMotionListener{
-	Thread t;
+public class MyGameGui extends JFrame implements ActionListener, MouseListener, MouseMotionListener {
 	game_service game;
 	DGraph dg;
-	Graph_Algo g_a = new Graph_Algo(dg);
 	Point3D point_pressed = null;
 	public LinkedList<node_data> list_of_press = new LinkedList<node_data>();
 	LinkedList<Point3D> node_loc = new LinkedList<Point3D>();	
+
+	Thread t2 = new Thread();
+
 	int num_robots;
 	int scenario;
 
@@ -43,6 +43,9 @@ public class MyGameGui extends JFrame implements ActionListener, MouseListener, 
 	boolean MANU = false;
 	boolean NUMBER = false;
 
+	boolean FIRST = true;
+	boolean ADDED_ROBOT = true;
+
 	private final int BIGGER = 5;
 
 	public MyGameGui() {
@@ -50,12 +53,12 @@ public class MyGameGui extends JFrame implements ActionListener, MouseListener, 
 	}
 
 	private void initGUI() {
-		this.setSize(1000, 800);
+		this.setSize(1000, 650);
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
 		MenuBar mBar = new MenuBar();
-		Menu m = new Menu("Menu");
-		mBar.add(m);
+		Menu menu = new Menu("Menu");
+		mBar.add(menu);
 		this.setMenuBar(mBar);
 
 		MenuItem item = new MenuItem("Manual Game");
@@ -65,9 +68,9 @@ public class MyGameGui extends JFrame implements ActionListener, MouseListener, 
 		MenuItem item2 = new MenuItem("Scenario Number");
 		item2.addActionListener(this);
 
-		m.add(item2);
-		m.add(item);
-		m.add(item1);
+		menu.add(item2);
+		menu.add(item);
+		menu.add(item1);
 
 		this.addMouseListener(this);
 	}
@@ -92,15 +95,14 @@ public class MyGameGui extends JFrame implements ActionListener, MouseListener, 
 			MANU = true;
 			oneOfThem();
 			start_of_game();
-
 			break;
 
 		case "Automatic Game":
 			AUTO = true;
 			oneOfThem();
 			start_of_game();
-
 			break;
+
 		}
 
 	}
@@ -109,38 +111,41 @@ public class MyGameGui extends JFrame implements ActionListener, MouseListener, 
 		super.paint(g);
 		g.setColor(Color.BLACK);
 		g.drawString("בס''ד", 950, 70);
+		if(FIRST && ADDED_ROBOT) {
+			game = Game_Server.getServer(scenario);
+			String graph_game = game.getGraph();
+			dg = new DGraph();
+			/////////////////////////first push to gragh
+			dg.init(graph_game);
+			String info = game.toString();
+			System.out.println(info);
+			JSONObject line;
+			num_robots = 0;
 
-		game = Game_Server.getServer(scenario);
-		String graph_game = game.getGraph();
-		dg = new DGraph();
-		/////////////////////////first push to gragh
-		dg.init(graph_game);
-		String info = game.toString();
-		System.out.println(info);
-		JSONObject line;
-		num_robots = 0;
+			try {
+				Thread.sleep(500);
+				////info of game
+				line = new JSONObject(info);
+				JSONObject ttt = line.getJSONObject("GameServer");
+				num_robots = ttt.getInt("robots");	//num of robots
 
-		try {
-			////info of game
-			line = new JSONObject(info);
-			JSONObject ttt = line.getJSONObject("GameServer");
-			num_robots = ttt.getInt("robots");	//num of robots
+				Iterator<String> f_iter = game.getFruits().iterator();
+				while(f_iter.hasNext()) {
+					line = new JSONObject(f_iter.next());
+					JSONObject fru = line.getJSONObject("Fruit");
+					Fruit ans=new Fruit(fru.getDouble("value"),fru.getInt("type"),fru.getString("pos"));
+					dg.addfruit(ans);
+				}
 
-			Iterator<String> f_iter = game.getFruits().iterator();
-			while(f_iter.hasNext()) {
-				line = new JSONObject(f_iter.next());
-				JSONObject fru = line.getJSONObject("Fruit");
-				Fruit ans=new Fruit(fru.getDouble("value"),fru.getInt("type"),fru.getString("pos"));
-				dg.addfruit(ans);
+			} catch (JSONException e) {e.printStackTrace();} 
+			catch (InterruptedException e) {
+				e.printStackTrace();
 			}
+		} ///*** if ***///
 
-		} catch (JSONException e) {
-			e.printStackTrace();
-		}
+		if(ADDED_ROBOT) {
+			if (null == dg) return;
 
-		if (null == dg) return;
-
-		try {
 			for (node_data n : dg.Vertex) {
 				node_loc.add(n.getLocation()); // Take a location of all nodes in the graph
 
@@ -173,23 +178,18 @@ public class MyGameGui extends JFrame implements ActionListener, MouseListener, 
 			}
 
 			if(CAN_PRINT_ROBOT) {
+				System.out.println("dg: "+dg.Robots);
 				//////////////append robots
 				for (Robot n : dg.Robots) {
-					System.out.println("\nloc = "+n.getLocation());
 					g.setColor(Color.blue);
 					g.fillOval(n.getLocation().ix() - BIGGER, n.getLocation().iy() - BIGGER,
 							(int)2.5*BIGGER, (int)2.5*BIGGER);
 				}
 			}
-
-			t.sleep(100);
-		} catch (InterruptedException e) {
-			e.printStackTrace();
 		}
 
 	}
-	
-	
+
 	/**
 	 * we choose a number of scenario => 0-23
 	 * else choose again.
@@ -201,11 +201,10 @@ public class MyGameGui extends JFrame implements ActionListener, MouseListener, 
 			try {
 				scenario = Integer.parseInt(input);
 			} catch(Exception e) {
-				throw new TimeoutException("Is not an Integer !!");
-			}
-			if(0 > scenario || scenario > 23) {
 				choose_num();
 			}
+			if(0 > scenario || scenario > 23)
+				choose_num();
 		}
 	}
 
@@ -216,7 +215,6 @@ public class MyGameGui extends JFrame implements ActionListener, MouseListener, 
 	 * 
 	 */
 	private void fruitEdge() {
-		LinkedList<edge_data> ed = new LinkedList<edge_data>();//the edges of fruits
 		Iterator<Fruit> fruit = dg.Fruits.iterator();
 		while(fruit.hasNext()) {
 			Fruit a=fruit.next();
@@ -249,7 +247,6 @@ public class MyGameGui extends JFrame implements ActionListener, MouseListener, 
 		if((src.distance2D(p)+p.distance2D(dest)-src.distance2D(dest)) < e) return true;
 		return false;
 	}
-	
 
 	/**
 	 * 
@@ -269,12 +266,18 @@ public class MyGameGui extends JFrame implements ActionListener, MouseListener, 
 		}
 		paintRobots();
 		game.startGame();
-		
 
 		Move m = new Move(game, dg);
 		while(game.isRunning()) {
+
 			/////////////////////////////////////where each robot move////////////////
-			m.run();
+			m.start();
+			try {
+				repaint();
+				Thread.sleep(100);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
 		}
 
 		////////////////////////////////////////end game/////////////
@@ -285,11 +288,10 @@ public class MyGameGui extends JFrame implements ActionListener, MouseListener, 
 
 	private void paintRobots() {
 		// The player press on Automatic or Manual Game
-		if(AUTO || MANU) {
-			if(AUTO) Automatic_Robots();
-			else Manual_Robots();
-		}
+		if(AUTO) Automatic_Robots();
+		else if(MANU) Manual_Robots();
 		CAN_PRINT_ROBOT = true;
+		FIRST = false;
 		repaint();
 	}
 
@@ -306,17 +308,20 @@ public class MyGameGui extends JFrame implements ActionListener, MouseListener, 
 				line = new JSONObject(r_iter.next());
 				JSONObject ro = line.getJSONObject("Robot");
 				Robot ans = new Robot(ro.getInt("id"),ro.getInt("value"),ro.getInt("src"),ro.getInt("dest"),ro.getInt("speed"),ro.getString("pos"));
+				System.out.println("ans = "+ans.id);
 				dg.addrobot(ans);
 			} catch (JSONException e) {
 				e.printStackTrace();
-			}	
+			}
 		}
 
 	}
 
 	private void Manual_Robots() {
-		for(int r = 0; r < num_robots; r++)
-			game.addRobot(list_of_press.get(r).getKey());
+		if(list_of_press != null && num_robots <= list_of_press.size()) {
+			for(int r = 0; r < num_robots; r++)
+				game.addRobot(list_of_press.get(r).getKey());
+		}
 	}
 
 	/**
@@ -346,12 +351,6 @@ public class MyGameGui extends JFrame implements ActionListener, MouseListener, 
 		}
 	}
 
-
-	public void addGraph(DGraph dg1) {
-		this.dg = dg1;
-		this.repaint();
-	}
-
 	///////////////////////////////
 	/// *** private methods *** ///
 	///////////////////////////////
@@ -376,6 +375,9 @@ public class MyGameGui extends JFrame implements ActionListener, MouseListener, 
 		if(AUTO) MANU  = false;
 	}
 
+	public void addGraph(DGraph dg1) {
+		this.dg = dg1;
+	}
 
 	@Override
 	public void mouseDragged(MouseEvent m_e) {;}
