@@ -30,12 +30,14 @@ public class Move extends Thread {
 	List<String> log;
 	game_service game;
 	DGraph gg;
+	long level;
 	MyGameGui gu;
 
-	public Move(game_service game, DGraph gg, MyGameGui gu) {
+	public Move(game_service game, DGraph gg, MyGameGui gu, long level_sleep) {
 		this.game = game;
 		this.gg = gg;
 		this.gu = gu;
+		this.level = level_sleep;
 	}
 
 	@Override
@@ -43,7 +45,7 @@ public class Move extends Thread {
 		while(true) {
 			moveRobots(this.game, this.gg);
 			try {
-				sleep(100);
+				sleep(level);
 			} catch (InterruptedException e) {e.printStackTrace();}
 		}
 	}
