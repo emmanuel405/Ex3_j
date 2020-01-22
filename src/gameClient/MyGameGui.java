@@ -1,7 +1,6 @@
 package gameClient;
 
 import java.awt.Color;
-
 import java.awt.Graphics;
 import java.awt.Menu;
 import java.awt.MenuBar;
@@ -43,7 +42,8 @@ public class MyGameGui extends JFrame implements ActionListener, MouseListener, 
 	boolean NUMBER = false;
 
 	static int count = 0;
-	
+	long level_sleep;
+
 	boolean FIRST = true;
 
 	private final int BIGGER = 5;
@@ -88,18 +88,17 @@ public class MyGameGui extends JFrame implements ActionListener, MouseListener, 
 			} catch (TimeoutException e) {
 				e.printStackTrace();
 			}
+			level_sleep = getSleep();
 			repaint();
 			break;
 
 		case "Manual Game":
-			log =new KML_Logger(scenario);
 			MANU = true;
 			oneOfThem();
 			start_of_game();
 			break;
 
 		case "Automatic Game":
-			log =new KML_Logger(scenario);
 			AUTO = true;
 			oneOfThem();
 			start_of_game();
@@ -111,9 +110,11 @@ public class MyGameGui extends JFrame implements ActionListener, MouseListener, 
 
 	public void paint(Graphics g) {
 		super.paint(g);
+		// for fun
 		g.setColor(Color.BLACK);
 		g.drawString("בס''ד", 950, 70);
 
+		// if is the first time do you enter here and don't choose yet a game type
 		if(FIRST) {
 			game = Game_Server.getServer(scenario);
 			String graph_game = game.getGraph();
@@ -121,7 +122,7 @@ public class MyGameGui extends JFrame implements ActionListener, MouseListener, 
 			/////////////////////////first push to gragh
 			dg.init(graph_game);
 			num_robots = 0;
-			
+
 			try {
 				String info = game.toString();
 				System.out.println(info);
@@ -141,9 +142,9 @@ public class MyGameGui extends JFrame implements ActionListener, MouseListener, 
 				}
 
 			} catch (JSONException e) {e.printStackTrace();} 
-		
+
 		}
-		
+
 		if (null == dg) return;
 		for (node_data n : dg.Vertex) {
 			node_loc.add(n.getLocation()); // Take a location of all nodes in the graph
@@ -173,42 +174,39 @@ public class MyGameGui extends JFrame implements ActionListener, MouseListener, 
 		for (Fruit n : dg.Fruits) {
 			if (n.type==-1) {
 				g.setColor(Color.orange);
+				g.fillOval(n.getLocation().ix() - BIGGER, n.getLocation().iy() - BIGGER,
+						(int)2.5*BIGGER, (int)2.5*BIGGER);
+				log.Place_Mark("fruit_-1", n.getLocation().toString());
+			}
+			if (n.type==-1) {
+				g.setColor(Color.orange);
 
 				g.fillOval(n.getLocation().ix() - BIGGER, n.getLocation().iy() - BIGGER,
 
 						(int)2.5*BIGGER, (int)2.5*BIGGER);
-	///////////////////////////////////////////////////////////////////////////////////////////////////			
-				log.Place_Mark("fruit_-1", n.getLocation().toString());/////////////////
-	}/////////////////////////////////////////////////////////////////////////////////
-	if (n.type==-1) {
-		g.setColor(Color.orange);
-
-		g.fillOval(n.getLocation().ix() - BIGGER, n.getLocation().iy() - BIGGER,
-
-				(int)2.5*BIGGER, (int)2.5*BIGGER);
-		////////////////////////////////////////////////////////////////
-		log.Place_Mark("fruit_1", n.getLocation().toString());////////////////////
-	}///////////////////////////////////////////////////////////////////////////
+				////////////////////////////////////////////////////////////////
+				log.Place_Mark("fruit_1", n.getLocation().toString());////////////////////
+			}///////////////////////////////////////////////////////////////////////////
 		}
-		if(CAN_PRINT_ROBOT) {
+		if(CAN_PRINT_ROBOT) { // print the robbot after you choice about the type of game
 			//////////////append robots
 			for (Robot n : dg.Robots) {
 				g.setColor(Color.blue);
 				g.fillOval(n.getLocation().ix() - BIGGER, n.getLocation().iy() - BIGGER,
 						(int)2.5*BIGGER, (int)2.5*BIGGER);
-				////////////////////////////////////////////////////////////////////////
-				this.log.Place_Mark("data/robot3.png", n.getLocation().toString());//////////
-			}////////////////////////////////////////////////////////////////////////////
+				this.log.Place_Mark("data/robot3.png", n.getLocation().toString());
+			}
 		}
 
 	}
-	
+
 	/**
 	 * for starting the game:
 	 * if we are in auto game = we מפזרים a robots on the graph
 	 * 'paintRobots' => paint the robot on the graph
 	 * 'm' is the thread of move
 	 * 
+	 * in end of game we view the result of game
 	 */
 	private void start_of_game() {
 		if(AUTO) {
@@ -221,37 +219,55 @@ public class MyGameGui extends JFrame implements ActionListener, MouseListener, 
 				pizur += stati;
 			}
 		}
-		
+
 		paintRobots();
-		
+
 		game.startGame();
 
-		Move m = new Move(game, dg, this);
+		Move m = new Move(game, dg, this, level_sleep);
 		m.start();
-		
+
 		while(game.isRunning()) {
 			repaint();
 			try {
-				Thread.sleep(100);
+				Thread.sleep(level_sleep);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
 		}
-		
+
 
 		///////////////////end game/////////////
 		String results = game.toString();
 		System.out.println("Game Over: "+results);
 		game.stopGame();
 	}
-	
+
+	/**
+	 * In accordance with scenario num we change the time of thread's sleep.
+	 * @return long
+	 */
+	private long getSleep() {
+		if(0 <= scenario && scenario < 3) return 80; // 0 1 2
+		else if((3 <= scenario && scenario < 5) || (8 <= scenario && scenario < 10)) return 60; // 0 1 2
+		else if(5 <= scenario && scenario < 7 || scenario == 19) return 50;
+		else if(10 <= scenario && scenario < 12 || scenario == 20) return 100;
+		else if(scenario == 14 || scenario == 17 || scenario == 18) return 70;
+		else if(scenario == 16) return 55;
+		else return 40;
+
+	}
+
+	/**
+	 * We cleared our rectangle and repaint him again with new coordinates.
+	 */
 	@Override
 	public void repaint() {
 		Graphics g = this.getGraphics();
 		this.getGraphics().clearRect(0, 0, 1000, 650);
 		paint(g);
 	}
-	
+
 
 	/**
 	 * we choose a number of scenario => 0-23
@@ -306,12 +322,23 @@ public class MyGameGui extends JFrame implements ActionListener, MouseListener, 
 
 	}
 
+	/**
+	 * to check if a fruit on the edge
+	 * @param p
+	 * @param src
+	 * @param dest
+	 * 
+	 * @return boolean
+	 */
 	private static boolean check_on_line(Point3D p, Point3D src, Point3D dest) {
 		double e = 0.0000001;
 		if((src.distance2D(p)+p.distance2D(dest)-src.distance2D(dest)) < e) return true;
 		return false;
 	}
 
+	/**
+	 * we go to other methods for paint robot in accordance with choice of game
+	 */
 	private void paintRobots() {
 		// The player press on Automatic or Manual Game
 		if(AUTO) Automatic_Robots();
@@ -344,6 +371,9 @@ public class MyGameGui extends JFrame implements ActionListener, MouseListener, 
 
 	}
 
+	/**
+	 * if we have a node in the list => put them to robbot or the game
+	 */
 	private void Manual_Robots() {
 		if(list_of_press != null && num_robots <= list_of_press.size()) {
 			for(int r = 0; r < num_robots; r++) {
