@@ -44,7 +44,6 @@ public class MyGameGui extends JFrame implements ActionListener, MouseListener, 
 	boolean NUMBER = false;
 
 	boolean FIRST = true;
-	boolean ADDED_ROBOT = true;
 
 	private final int BIGGER = 5;
 
@@ -111,7 +110,7 @@ public class MyGameGui extends JFrame implements ActionListener, MouseListener, 
 		super.paint(g);
 		g.setColor(Color.BLACK);
 		g.drawString("בס''ד", 950, 70);
-		if(FIRST && ADDED_ROBOT) {
+		if(FIRST) {
 			game = Game_Server.getServer(scenario);
 			String graph_game = game.getGraph();
 			dg = new DGraph();
@@ -143,7 +142,7 @@ public class MyGameGui extends JFrame implements ActionListener, MouseListener, 
 			}
 		} ///*** if ***///
 
-		if(ADDED_ROBOT) {
+		if(true) {
 			if (null == dg) return;
 
 			for (node_data n : dg.Vertex) {
