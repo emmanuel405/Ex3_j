@@ -2,7 +2,7 @@ package gameClient;
 
 import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.LinkedList;
+//import java.util.LinkedList;
 import java.util.List;
 
 import org.json.JSONException;
@@ -13,8 +13,8 @@ import algorithms.Graph_Algo;
 import dataStructure.DGraph;
 import dataStructure.NodeData;
 import dataStructure.edgeData;
-import dataStructure.edge_data;
-import dataStructure.graph;
+//import dataStructure.edge_data;
+//import dataStructure.graph;
 import dataStructure.node_data;
 import utils.Point3D;
 
@@ -26,35 +26,35 @@ import utils.Point3D;
  * @param log
  */
 
-public class Move implements Runnable {
-	Thread t;
+public class Move extends Thread {
+	List<String> log;
 	game_service game;
-	DGraph gg = new DGraph();
+	DGraph gg;
+	MyGameGui gu;
 
-	public Move(game_service game, DGraph gg) {
+	public Move(game_service game, DGraph gg, MyGameGui gu) {
 		this.game = game;
 		this.gg = gg;
+		this.gu = gu;
 	}
-	
+
 	@Override
 	public void run() {
-		while(this.game.isRunning()) {
+		while(true) {
+			moveRobots(this.game, this.gg);
 			try {
-				moveRobots(this.game, this.gg);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
+				sleep(100);
+			} catch (InterruptedException e) {e.printStackTrace();}
 		}
 	}
 
-	private void moveRobots(game_service game, DGraph gg) throws InterruptedException {
+	private void moveRobots(game_service game, DGraph gg) {
 		///move the robots 1 step
-		List<String> log = this.game.move();
+		log = this.game.move();
 		if(log!=null) {
 			long t = this.game.timeToEnd();
-			int num_robots = 0;
 			///run on every robot and see if we need to enter new direction to robot
-			for(int i=0;i<log.size();i++, num_robots++) {
+			for(int i=0;i<log.size();i++) {
 				String robot_json = log.get(i);
 				try {
 					JSONObject line = new JSONObject(robot_json);
@@ -62,19 +62,19 @@ public class Move implements Runnable {
 					int rid = ttt.getInt("id");
 					int src = ttt.getInt("src");
 					int dest = ttt.getInt("dest");
-					String pos=ttt.getString("pos");
-					String[] cord= pos.split(",");
-					Point3D ans=new Point3D(scale(Double.parseDouble(cord[0]),35.186179,35.2142,0,1000),
+					String pos = ttt.getString("pos");
+					String[] cord = pos.split(",");
+					Point3D ans = new Point3D(scale(Double.parseDouble(cord[0]),35.186179,35.2142,0,1000),
 							scale(Double.parseDouble(cord[1]),32.100148,32.109347,100,600));
 
-					if(dest==-1) {//no direcrtion	
-						dest = nextNode(gg, src, rid);///choose the node
+					if(dest == -1) {		///no direcrtion	
+						dest = nextNode(src, rid);///choose the node
 						game.chooseNextEdge(rid, dest);///sent to server
 						System.out.println("Turn to node: "+dest+"  time to end:"+(t/1000));
 						System.out.println(ttt);
 					}
 					this.gg.Robots.get(rid).pos = ans;					
-
+					
 				}
 				catch (JSONException e) {e.printStackTrace();}
 			}
@@ -96,26 +96,24 @@ public class Move implements Runnable {
 	 * @return
 	 * @throws JSONException 
 	 */
-	private int nextNode(graph g, int src, int rid) throws JSONException {
-		this.gg.Robots.get(rid).src=src;
-		////////creat th targets list at first iterate
-
-		if (this.gg.Robots.get(rid).path==null) {
+	private int nextNode(int src, int rid) throws JSONException {
+		this.gg.Robots.get(rid).src = src;
+		//create the targets list at first iterate
+		if (null == this.gg.Robots.get(rid).path) {
 			double minpath=Integer.MAX_VALUE;///the dist to the fruit
 			for (Fruit fr : gg.Fruits) {
 				Graph_Algo gr= new Graph_Algo();
 				gr.init(this.gg);
-				double dist=gr.shortestPathDist(src, fr.ed.getSrc());///the dist to the  current fruit
-				if (fr.withrob==-1&&dist<minpath);////the fruit not cout
-				minpath=dist;
-				this.gg.Robots.get(rid).dest=fr.ed.getSrc();///the trget of this robot
+				double dist = gr.shortestPathDist(src, fr.ed.getSrc());///the dist to the  current fruit
+				if (fr.withrob == -1 && dist < minpath);////the fruit not cout
+				minpath = dist;
+				this.gg.Robots.get(rid).dest = fr.ed.getSrc();///the trget of this robot
 			}
-			this.gg.Robots.get(rid).path=this.gg.getPath(this.gg.getNode(this.gg.Robots.get(rid).src),
+			this.gg.Robots.get(rid).path = this.gg.getPath(this.gg.getNode(this.gg.Robots.get(rid).src),
 					this.gg.getNode(this.gg.Robots.get(rid).dest));///the way of this robot
 			return this.gg.Robots.get(rid).path.get(0).getKey();///finish
 
 		}
-
 		////////////the list exist
 		else if (gg.Robots.get(rid).path.size()>0){///thers more then 1 target
 			gg.Robots.get(rid).path.remove(0);
@@ -124,7 +122,7 @@ public class Move implements Runnable {
 			if (gg.Robots.get(rid).path.size()==0) {
 				gg.Fruits=new ArrayList<Fruit>();				
 				//reset fruit in gragh
-				boolean flag=true;
+				//boolean flag=true;
 				Iterator<String> f_iter = game.getFruits().iterator();
 				while(f_iter.hasNext()) {
 					JSONObject line = new JSONObject(f_iter.next());
@@ -133,7 +131,6 @@ public class Move implements Runnable {
 
 					gg.addfruit(ans);
 				}
-				LinkedList<edge_data> ed = new LinkedList<edge_data>();//the edges of fruits
 				Iterator<Fruit> fruit = gg.Fruits.iterator();
 				while(fruit.hasNext()) {
 					Fruit a=fruit.next();
@@ -159,8 +156,7 @@ public class Move implements Runnable {
 					}
 				}
 
-
-				double minpath=Integer.MAX_VALUE;///the dist to the fruit
+				double minpath = Integer.MAX_VALUE;///the dist to the fruit
 
 				for (Fruit fr : gg.Fruits) {
 					Graph_Algo gr= new Graph_Algo();
@@ -197,6 +193,5 @@ public class Move implements Runnable {
 		if((src.distance2D(p)+p.distance2D(dest)-src.distance2D(dest)) < e) return true;
 		return false;
 	}
-
 
 } // Move
