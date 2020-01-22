@@ -30,14 +30,12 @@ public class Move extends Thread {
 	List<String> log;
 	game_service game;
 	DGraph gg;
-	long level;
 	MyGameGui gu;
 
-	public Move(game_service game, DGraph gg, MyGameGui gu, long level_sleep) {
+	public Move(game_service game, DGraph gg, MyGameGui gu) {
 		this.game = game;
 		this.gg = gg;
 		this.gu = gu;
-		this.level = level_sleep;
 	}
 
 	@Override
@@ -45,7 +43,7 @@ public class Move extends Thread {
 		while(true) {
 			moveRobots(this.game, this.gg);
 			try {
-				sleep(level);
+				sleep(100);
 			} catch (InterruptedException e) {e.printStackTrace();}
 		}
 	}
@@ -72,17 +70,19 @@ public class Move extends Thread {
 					if(dest == -1) {		///no direcrtion	
 						dest = nextNode(src, rid);///choose the node
 						game.chooseNextEdge(rid, dest);///sent to server
-						System.out.println("Turn to node: "+dest+"  time to end:"+(t/1000));
-						System.out.println(ttt);
+						//System.out.println("Turn to node: "+dest+"  time to end:"+(t/1000));
+						//System.out.println(ttt);
+						
 					}
-					this.gg.Robots.get(rid).pos = ans;					
-					
+					this.gg.Robots.get(rid).pos = ans;	
+					//////////////////////////////////////////////
+					//System.out.println(MyGameGui.log.kmltxt);///////////
+					///////////////////////////////////////////////
 				}
 				catch (JSONException e) {e.printStackTrace();}
 			}
 
 		}
-
 	}
 
 	private double scale(double data, double r_min, double r_max, 

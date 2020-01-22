@@ -1,6 +1,7 @@
 package gameClient;
 
 import java.awt.Color;
+
 import java.awt.Graphics;
 import java.awt.Menu;
 import java.awt.MenuBar;
@@ -32,7 +33,7 @@ public class MyGameGui extends JFrame implements ActionListener, MouseListener, 
 	Point3D point_pressed = null;
 	public LinkedList<node_data> list_of_press = new LinkedList<node_data>();
 	LinkedList<Point3D> node_loc = new LinkedList<Point3D>();
-
+	public static KML_Logger log;
 	int num_robots;
 	int scenario;
 
@@ -42,7 +43,6 @@ public class MyGameGui extends JFrame implements ActionListener, MouseListener, 
 	boolean NUMBER = false;
 
 	static int count = 0;
-	long level_sleep;
 	
 	boolean FIRST = true;
 
@@ -88,17 +88,18 @@ public class MyGameGui extends JFrame implements ActionListener, MouseListener, 
 			} catch (TimeoutException e) {
 				e.printStackTrace();
 			}
-			level_sleep = getSleep();
 			repaint();
 			break;
 
 		case "Manual Game":
+			log =new KML_Logger(scenario);
 			MANU = true;
 			oneOfThem();
 			start_of_game();
 			break;
 
 		case "Automatic Game":
+			log =new KML_Logger(scenario);
 			AUTO = true;
 			oneOfThem();
 			start_of_game();
@@ -107,8 +108,6 @@ public class MyGameGui extends JFrame implements ActionListener, MouseListener, 
 		}
 
 	}
-
-	
 
 	public void paint(Graphics g) {
 		super.paint(g);
@@ -172,9 +171,24 @@ public class MyGameGui extends JFrame implements ActionListener, MouseListener, 
 		fruitEdge();
 		//////////////append fruits
 		for (Fruit n : dg.Fruits) {
-			g.setColor(Color.orange);
-			g.fillOval(n.getLocation().ix() - BIGGER, n.getLocation().iy() - BIGGER,
-					(int)2.5*BIGGER, (int)2.5*BIGGER);
+			if (n.type==-1) {
+				g.setColor(Color.orange);
+
+				g.fillOval(n.getLocation().ix() - BIGGER, n.getLocation().iy() - BIGGER,
+
+						(int)2.5*BIGGER, (int)2.5*BIGGER);
+	///////////////////////////////////////////////////////////////////////////////////////////////////			
+				log.Place_Mark("fruit_-1", n.getLocation().toString());/////////////////
+	}/////////////////////////////////////////////////////////////////////////////////
+	if (n.type==-1) {
+		g.setColor(Color.orange);
+
+		g.fillOval(n.getLocation().ix() - BIGGER, n.getLocation().iy() - BIGGER,
+
+				(int)2.5*BIGGER, (int)2.5*BIGGER);
+		////////////////////////////////////////////////////////////////
+		log.Place_Mark("fruit_1", n.getLocation().toString());////////////////////
+	}///////////////////////////////////////////////////////////////////////////
 		}
 		if(CAN_PRINT_ROBOT) {
 			//////////////append robots
@@ -182,7 +196,9 @@ public class MyGameGui extends JFrame implements ActionListener, MouseListener, 
 				g.setColor(Color.blue);
 				g.fillOval(n.getLocation().ix() - BIGGER, n.getLocation().iy() - BIGGER,
 						(int)2.5*BIGGER, (int)2.5*BIGGER);
-			}
+				////////////////////////////////////////////////////////////////////////
+				this.log.Place_Mark("data/robot3.png", n.getLocation().toString());//////////
+			}////////////////////////////////////////////////////////////////////////////
 		}
 
 	}
@@ -210,13 +226,13 @@ public class MyGameGui extends JFrame implements ActionListener, MouseListener, 
 		
 		game.startGame();
 
-		Move m = new Move(game, dg, this, level_sleep);
+		Move m = new Move(game, dg, this);
 		m.start();
 		
 		while(game.isRunning()) {
 			repaint();
 			try {
-				Thread.sleep(level_sleep);
+				Thread.sleep(100);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
@@ -227,17 +243,6 @@ public class MyGameGui extends JFrame implements ActionListener, MouseListener, 
 		String results = game.toString();
 		System.out.println("Game Over: "+results);
 		game.stopGame();
-	}
-
-	private long getSleep() {
-		if(0 <= scenario && scenario < 3) return 80; // 0 1 2
-		else if((3 <= scenario && scenario < 5) || (8 <= scenario && scenario < 10)) return 60; // 0 1 2
-		else if(5 <= scenario && scenario < 7 || scenario == 19) return 50;
-		else if(10 <= scenario && scenario < 12 || scenario == 20) return 100;
-		else if(scenario == 14 || scenario == 17 || scenario == 18) return 70;
-		else if(scenario == 16) return 55;
-		else return 40;
-		
 	}
 	
 	@Override
