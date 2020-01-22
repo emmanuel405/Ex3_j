@@ -30,12 +30,14 @@ public class Move extends Thread {
 	List<String> log;
 	game_service game;
 	DGraph gg;
+	long level;
 	MyGameGui gu;
 
-	public Move(game_service game, DGraph gg, MyGameGui gu) {
+	public Move(game_service game, DGraph gg, MyGameGui gu, long level_sleep) {
 		this.game = game;
 		this.gg = gg;
 		this.gu = gu;
+		this.level = level_sleep;
 	}
 
 	@Override
@@ -43,11 +45,18 @@ public class Move extends Thread {
 		while(true) {
 			moveRobots(this.game, this.gg);
 			try {
-				sleep(100);
+				sleep(level);
 			} catch (InterruptedException e) {e.printStackTrace();}
 		}
 	}
 
+	/**
+	 * @param game
+	 * @param gg
+	 * take a coordinates of robots from json
+	 * while the dest is -1 so we check a path for another fruit
+	 * 
+	 */
 	private void moveRobots(game_service game, DGraph gg) {
 		///move the robots 1 step
 		log = this.game.move();
@@ -70,21 +79,31 @@ public class Move extends Thread {
 					if(dest == -1) {		///no direcrtion	
 						dest = nextNode(src, rid);///choose the node
 						game.chooseNextEdge(rid, dest);///sent to server
-						//System.out.println("Turn to node: "+dest+"  time to end:"+(t/1000));
-						//System.out.println(ttt);
-						
+						System.out.println("Turn to node: "+dest+"  time to end:"+(t/1000));
+						System.out.println(ttt);
 					}
-					this.gg.Robots.get(rid).pos = ans;	
+					this.gg.Robots.get(rid).pos = ans;
 					//////////////////////////////////////////////
-					//System.out.println(MyGameGui.log.kmltxt);///////////
+					System.out.println(MyGameGui.log.kmltxt);
 					///////////////////////////////////////////////
+
 				}
 				catch (JSONException e) {e.printStackTrace();}
 			}
 
 		}
+
 	}
 
+	/**
+	 * 
+	 * @param data
+	 * @param r_min
+	 * @param r_max
+	 * @param t_min
+	 * @param t_max
+	 * @return
+	 */
 	private double scale(double data, double r_min, double r_max, 
 			double t_min, double t_max){
 		double res = ((data - r_min) / (r_max-r_min)) * (t_max - t_min) + t_min;
@@ -92,10 +111,11 @@ public class Move extends Thread {
 	}
 
 	/**
-	 * implementation manuel algo!
+	 * 
 	 * @param g
 	 * @param src
-	 * @return
+	 * 
+	 * 
 	 * @throws JSONException 
 	 */
 	private int nextNode(int src, int rid) throws JSONException {
