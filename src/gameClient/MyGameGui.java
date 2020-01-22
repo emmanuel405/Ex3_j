@@ -176,7 +176,7 @@ public class MyGameGui extends JFrame implements ActionListener, MouseListener, 
 				g.setColor(Color.orange);
 				g.fillOval(n.getLocation().ix() - BIGGER, n.getLocation().iy() - BIGGER,
 						(int)2.5*BIGGER, (int)2.5*BIGGER);
-				log.Place_Mark("fruit_-1", n.getLocation().toString());
+				//				log.Place_Mark("fruit_-1", n.getLocation().toString());
 			}
 			if (n.type==-1) {
 				g.setColor(Color.orange);
@@ -184,9 +184,9 @@ public class MyGameGui extends JFrame implements ActionListener, MouseListener, 
 				g.fillOval(n.getLocation().ix() - BIGGER, n.getLocation().iy() - BIGGER,
 
 						(int)2.5*BIGGER, (int)2.5*BIGGER);
-				////////////////////////////////////////////////////////////////
-				log.Place_Mark("fruit_1", n.getLocation().toString());////////////////////
-			}///////////////////////////////////////////////////////////////////////////
+
+//				log.Place_Mark("fruit_1", n.getLocation().toString());
+			}
 		}
 		if(CAN_PRINT_ROBOT) { // print the robbot after you choice about the type of game
 			//////////////append robots
@@ -194,7 +194,7 @@ public class MyGameGui extends JFrame implements ActionListener, MouseListener, 
 				g.setColor(Color.blue);
 				g.fillOval(n.getLocation().ix() - BIGGER, n.getLocation().iy() - BIGGER,
 						(int)2.5*BIGGER, (int)2.5*BIGGER);
-				this.log.Place_Mark("data/robot3.png", n.getLocation().toString());
+//				this.log.Place_Mark("data/robot3.png", n.getLocation().toString());
 			}
 		}
 
