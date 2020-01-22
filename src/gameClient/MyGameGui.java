@@ -376,6 +376,7 @@ public class MyGameGui extends JFrame implements ActionListener, MouseListener, 
 
 	public void addGraph(DGraph dg1) {
 		this.dg = dg1;
+		this.repaint();
 	}
 
 	@Override
