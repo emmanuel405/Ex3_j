@@ -41,7 +41,7 @@ public class MyGameGui extends JFrame implements ActionListener, MouseListener, 
 	boolean MANU = false;
 	boolean NUMBER = false;
 
-	int count = 0;
+	static int count = 0;
 	
 	boolean FIRST = true;
 
@@ -118,27 +118,29 @@ public class MyGameGui extends JFrame implements ActionListener, MouseListener, 
 			/////////////////////////first push to gragh
 			dg.init(graph_game);
 			num_robots = 0;
-		}
-		try {
-			String info = game.toString();
-			System.out.println(info);
-			JSONObject line;
-			////info of game
-			line = new JSONObject(info);
-			JSONObject ttt = line.getJSONObject("GameServer");
-			num_robots = ttt.getInt("robots");	//num of robots
+			
+			try {
+				String info = game.toString();
+				System.out.println(info);
+				JSONObject line;
+				////info of game
+				line = new JSONObject(info);
+				JSONObject ttt = line.getJSONObject("GameServer");
+				num_robots = ttt.getInt("robots");	//num of robots
 
-			Iterator<String> f_iter = game.getFruits().iterator();
-			while(f_iter.hasNext()) {
-				line = new JSONObject(f_iter.next());
-				JSONObject fru = line.getJSONObject("Fruit");
-				Fruit ans=new Fruit(fru.getDouble("value"),fru.getInt("type"),fru.getString("pos"));
-				dg.addfruit(ans);
-			}
+				Iterator<String> f_iter = game.getFruits().iterator();
+				while(f_iter.hasNext()) {
+					line = new JSONObject(f_iter.next());
+					JSONObject fru = line.getJSONObject("Fruit");
+					Fruit ans=new Fruit(fru.getDouble("value"),fru.getInt("type"),
+							fru.getString("pos"));
+					dg.addfruit(ans);
+				}
 
-		} catch (JSONException e) {e.printStackTrace();} 
+			} catch (JSONException e) {e.printStackTrace();} 
 		
-		System.out.println(count+") "+" "+CAN_PRINT_ROBOT);
+		}
+		
 		if (null == dg) return;
 		for (node_data n : dg.Vertex) {
 			node_loc.add(n.getLocation()); // Take a location of all nodes in the graph
@@ -170,7 +172,6 @@ public class MyGameGui extends JFrame implements ActionListener, MouseListener, 
 			g.fillOval(n.getLocation().ix() - BIGGER, n.getLocation().iy() - BIGGER,
 					(int)2.5*BIGGER, (int)2.5*BIGGER);
 		}
-
 		if(CAN_PRINT_ROBOT) {
 			//////////////append robots
 			for (Robot n : dg.Robots) {
@@ -181,6 +182,56 @@ public class MyGameGui extends JFrame implements ActionListener, MouseListener, 
 		}
 
 	}
+	
+	/**
+	 * for starting the game:
+	 * if we are in auto game = we מפזרים a robots on the graph
+	 * 'paintRobots' => paint the robot on the graph
+	 * 'm' is the thread of move
+	 * 
+	 */
+	private void start_of_game() {
+		if(AUTO) {
+			///spread the robots on server gragh
+			int pizur = dg.Vertex.size() / num_robots;
+			int stati = pizur;
+
+			for(int a = 0; a<num_robots; a++) {
+				game.addRobot((pizur-1) % dg.Vertex.size());
+				pizur += stati;
+			}
+		}
+		
+		paintRobots();
+		
+		game.startGame();
+
+		Move m = new Move(game, dg, this);
+		m.start();
+		
+		while(game.isRunning()) {
+			repaint();
+			try {
+				Thread.sleep(100);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+		}
+		
+
+		///////////////////end game/////////////
+		String results = game.toString();
+		System.out.println("Game Over: "+results);
+		game.stopGame();
+	}
+	
+	@Override
+	public void repaint() {
+		Graphics g = this.getGraphics();
+		this.getGraphics().clearRect(0, 0, 1000, 650);
+		paint(g);
+	}
+	
 
 	/**
 	 * we choose a number of scenario => 0-23
@@ -189,7 +240,8 @@ public class MyGameGui extends JFrame implements ActionListener, MouseListener, 
 	 */
 	private void choose_num() throws TimeoutException {
 		if(NUMBER) {
-			String input = JOptionPane.showInputDialog(null, "Please choose scenario between 0 and 23\nYour choice:");
+			String input = JOptionPane.showInputDialog(null, 
+					"Please choose scenario between 0 and 23\nYour choice:");
 			try {
 				scenario = Integer.parseInt(input);
 			} catch(Exception e) {
@@ -240,43 +292,6 @@ public class MyGameGui extends JFrame implements ActionListener, MouseListener, 
 		return false;
 	}
 
-	/**
-	 * 
-	 * 
-	 * 
-	 */
-	private void start_of_game() {
-		if(AUTO) {
-			///spread the robots on server gragh
-			int pizur = dg.Vertex.size() / num_robots;
-			int stati = pizur;
-
-			for(int a = 0; a<num_robots; a++) {
-				game.addRobot((pizur-1) % dg.Vertex.size());
-				pizur += stati;
-			}
-		}
-		paintRobots();
-		game.startGame();
-
-		Move m = new Move(game, dg);
-		m.start();
-		if(game.isRunning()) {
-			///////////////////////where each robot move////////////////
-			try {
-				count++;
-				repaint();
-				Thread.sleep(10);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-		}
-
-		//////////////////////////////////////end game/////////////
-		String results = game.toString();
-		System.out.println("Game Over: "+results);
-	}
-
 	private void paintRobots() {
 		// The player press on Automatic or Manual Game
 		if(AUTO) Automatic_Robots();
@@ -298,7 +313,9 @@ public class MyGameGui extends JFrame implements ActionListener, MouseListener, 
 			try {
 				line = new JSONObject(r_iter.next());
 				JSONObject ro = line.getJSONObject("Robot");
-				Robot ans = new Robot(ro.getInt("id"),ro.getInt("value"),ro.getInt("src"),ro.getInt("dest"),ro.getInt("speed"),ro.getString("pos"));
+				Robot ans = new Robot(ro.getInt("id"),ro.getInt("value"),
+						ro.getInt("src"),ro.getInt("dest"),
+						ro.getInt("speed"),ro.getString("pos"));
 				dg.addrobot(ans);
 			} catch (JSONException e) {
 				e.printStackTrace();
@@ -315,8 +332,8 @@ public class MyGameGui extends JFrame implements ActionListener, MouseListener, 
 			}
 		}
 		else System.out.println("GAME OVER !!\n"
-				+ "Choose enough node\n"
-				+ "PLAY AGAIN");
+				+ "Choose enough node s:\n"
+				+ "PLAY AGAIN !!");
 	}
 
 	private void addToGraph(int key) {
