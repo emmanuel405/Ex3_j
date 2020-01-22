@@ -31,9 +31,7 @@ public class MyGameGui extends JFrame implements ActionListener, MouseListener, 
 	DGraph dg;
 	Point3D point_pressed = null;
 	public LinkedList<node_data> list_of_press = new LinkedList<node_data>();
-	LinkedList<Point3D> node_loc = new LinkedList<Point3D>();	
-
-	Thread t2 = new Thread();
+	LinkedList<Point3D> node_loc = new LinkedList<Point3D>();
 
 	int num_robots;
 	int scenario;
@@ -43,6 +41,8 @@ public class MyGameGui extends JFrame implements ActionListener, MouseListener, 
 	boolean MANU = false;
 	boolean NUMBER = false;
 
+	int count = 0;
+	
 	boolean FIRST = true;
 
 	private final int BIGGER = 5;
@@ -110,77 +110,73 @@ public class MyGameGui extends JFrame implements ActionListener, MouseListener, 
 		super.paint(g);
 		g.setColor(Color.BLACK);
 		g.drawString("בס''ד", 950, 70);
+
 		if(FIRST) {
 			game = Game_Server.getServer(scenario);
 			String graph_game = game.getGraph();
 			dg = new DGraph();
 			/////////////////////////first push to gragh
 			dg.init(graph_game);
+			num_robots = 0;
+		}
+		try {
 			String info = game.toString();
 			System.out.println(info);
 			JSONObject line;
-			num_robots = 0;
+			////info of game
+			line = new JSONObject(info);
+			JSONObject ttt = line.getJSONObject("GameServer");
+			num_robots = ttt.getInt("robots");	//num of robots
 
-			try {
-				////info of game
-				line = new JSONObject(info);
-				JSONObject ttt = line.getJSONObject("GameServer");
-				num_robots = ttt.getInt("robots");	//num of robots
-
-				Iterator<String> f_iter = game.getFruits().iterator();
-				while(f_iter.hasNext()) {
-					line = new JSONObject(f_iter.next());
-					JSONObject fru = line.getJSONObject("Fruit");
-					Fruit ans=new Fruit(fru.getDouble("value"),fru.getInt("type"),fru.getString("pos"));
-					dg.addfruit(ans);
-				}
-
-			} catch (JSONException e) {e.printStackTrace();} 
-		} ///*** if ***///
-
-		if(true) {
-			if (null == dg) return;
-
-			for (node_data n : dg.Vertex) {
-				node_loc.add(n.getLocation()); // Take a location of all nodes in the graph
-
-				g.setColor(Color.GREEN);
-				g.fillOval((int)n.getLocation().x() - BIGGER, (int)n.getLocation().y() - BIGGER,
-						10, 10);
-
-				NodeData nn = (NodeData)n;
-				for (NodeData m :nn.outgoing ) {
-					g.setColor(Color.RED);
-					g.drawLine(n.getLocation().ix(), n.getLocation().iy(),
-							m.getLocation().ix(), m.getLocation().iy());
-
-					edge_data ed = dg.getEdge(n.getKey(), m.getKey());
-					g.drawString(String.format("%.2f", ed.getWeight()),
-							drawOnLine(n.getLocation().x(), m.getLocation().x(), 0.75),
-							drawOnLine(n.getLocation().y(), m.getLocation().y(), 0.75));
-
-					g.setColor(Color.BLACK);
-					g.fillOval(drawOnLine(n.getLocation().x(), m.getLocation().x(), 0.85),
-							drawOnLine(n.getLocation().y(), m.getLocation().y(), 0.85), 4, 4);
-				}
+			Iterator<String> f_iter = game.getFruits().iterator();
+			while(f_iter.hasNext()) {
+				line = new JSONObject(f_iter.next());
+				JSONObject fru = line.getJSONObject("Fruit");
+				Fruit ans=new Fruit(fru.getDouble("value"),fru.getInt("type"),fru.getString("pos"));
+				dg.addfruit(ans);
 			}
-			fruitEdge();
-			//////////////append fruits
-			for (Fruit n : dg.Fruits) {
-				g.setColor(Color.orange);
+
+		} catch (JSONException e) {e.printStackTrace();} 
+		
+		System.out.println(count+") "+" "+CAN_PRINT_ROBOT);
+		if (null == dg) return;
+		for (node_data n : dg.Vertex) {
+			node_loc.add(n.getLocation()); // Take a location of all nodes in the graph
+
+			g.setColor(Color.GREEN);
+			g.fillOval((int)n.getLocation().x() - BIGGER, (int)n.getLocation().y() - BIGGER,
+					10, 10);
+
+			NodeData nn = (NodeData)n;
+			for (NodeData m :nn.outgoing ) {
+				g.setColor(Color.RED);
+				g.drawLine(n.getLocation().ix(), n.getLocation().iy(),
+						m.getLocation().ix(), m.getLocation().iy());
+
+				edge_data ed = dg.getEdge(n.getKey(), m.getKey());
+				g.drawString(String.format("%.2f", ed.getWeight()),
+						drawOnLine(n.getLocation().x(), m.getLocation().x(), 0.75),
+						drawOnLine(n.getLocation().y(), m.getLocation().y(), 0.75));
+
+				g.setColor(Color.BLACK);
+				g.fillOval(drawOnLine(n.getLocation().x(), m.getLocation().x(), 0.85),
+						drawOnLine(n.getLocation().y(), m.getLocation().y(), 0.85), 4, 4);
+			}
+		}
+		fruitEdge();
+		//////////////append fruits
+		for (Fruit n : dg.Fruits) {
+			g.setColor(Color.orange);
+			g.fillOval(n.getLocation().ix() - BIGGER, n.getLocation().iy() - BIGGER,
+					(int)2.5*BIGGER, (int)2.5*BIGGER);
+		}
+
+		if(CAN_PRINT_ROBOT) {
+			//////////////append robots
+			for (Robot n : dg.Robots) {
+				g.setColor(Color.blue);
 				g.fillOval(n.getLocation().ix() - BIGGER, n.getLocation().iy() - BIGGER,
 						(int)2.5*BIGGER, (int)2.5*BIGGER);
-			}
-
-			if(CAN_PRINT_ROBOT) {
-				//////////////append robots
-				System.out.println("num_robots = "+num_robots);
-				System.out.println("num_dg_rob = "+dg.Robots.size());
-				for (Robot n : dg.Robots) {
-					g.setColor(Color.blue);
-					g.fillOval(n.getLocation().ix() - BIGGER, n.getLocation().iy() - BIGGER,
-							(int)2.5*BIGGER, (int)2.5*BIGGER);
-				}
 			}
 		}
 
@@ -261,25 +257,24 @@ public class MyGameGui extends JFrame implements ActionListener, MouseListener, 
 			}
 		}
 		paintRobots();
-
 		game.startGame();
 
 		Move m = new Move(game, dg);
-		while(game.isRunning()) {
-			/////////////////////////////////////where each robot move////////////////
-
+		m.start();
+		if(game.isRunning()) {
+			///////////////////////where each robot move////////////////
 			try {
-				m.start();
-				Thread.sleep(100);
+				count++;
+				repaint();
+				Thread.sleep(10);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
 		}
 
-		////////////////////////////////////////end game/////////////
+		//////////////////////////////////////end game/////////////
 		String results = game.toString();
 		System.out.println("Game Over: "+results);
-
 	}
 
 	private void paintRobots() {
@@ -319,6 +314,9 @@ public class MyGameGui extends JFrame implements ActionListener, MouseListener, 
 				addToGraph(list_of_press.get(r).getKey());	
 			}
 		}
+		else System.out.println("GAME OVER !!\n"
+				+ "Choose enough node\n"
+				+ "PLAY AGAIN");
 	}
 
 	private void addToGraph(int key) {
