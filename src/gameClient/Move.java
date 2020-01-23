@@ -37,10 +37,10 @@ public class Move extends Thread {
 		this.level = level_sleep;
 	}
 	
-	public Move(game_service game, DGraph gg, int level_sleep) {
+	public Move(game_service game, DGraph gg, int level) {
 		this.game = game;
 		this.gg = gg;
-		this.level = level_sleep;
+		this.level = level;
 	}
 
 	@Override
@@ -48,7 +48,7 @@ public class Move extends Thread {
 		while(true) {
 			moveRobots(this.game, this.gg);
 			try {
-				sleep(level);
+				sleep(getSleep());
 			} catch (InterruptedException e) {e.printStackTrace();}
 		}
 	}
@@ -79,16 +79,13 @@ public class Move extends Thread {
 					Point3D ans = new Point3D(scale(Double.parseDouble(cord[0]),35.186179,35.2142,0,1000),
 							scale(Double.parseDouble(cord[1]),32.100148,32.109347,100,600));
 
-					if(dest == -1) {		///no direcrtion	
+					if(dest == -1) {	///no direcrtion	
 						dest = nextNode(src, rid);///choose the node
 						game.chooseNextEdge(rid, dest);///sent to server
 						System.out.println("Turn to node: "+dest+"  time to end:"+(t/1000));
 						System.out.println(ttt);
 					}
 					this.gg.Robots.get(rid).pos = ans;
-					//////////////////////////////////////////////
-					System.out.println(gu.log.kmltxt);
-					///////////////////////////////////////////////
 
 				}
 				catch (JSONException e) {e.printStackTrace();}
@@ -219,4 +216,18 @@ public class Move extends Thread {
 		return false;
 	}
 
+	/**
+	 * In accordance with scenario num we change the time of thread's sleep.
+	 * @return long
+	 */
+	private int getSleep() {
+		if(level == 0) return 130;
+		if(0 <= level && level < 3) return 200;
+		else if((3 <= level && level < 5) || (8 <= level && level < 10)) return 60;
+		else if((5 <= level && level < 7) || level == 19) return 50;
+		else if((10 <= level && level < 12) || level == 20) return 100;
+		else if(level == 14 || level == 17 || level == 18) return 70;
+		else if(level == 16) return 55;
+		else return 40;
+	}
 } // Move
