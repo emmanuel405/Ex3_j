@@ -42,7 +42,7 @@ public class MyGameGui extends JFrame implements ActionListener, MouseListener, 
 	boolean NUMBER = false;
 
 	static int count = 0;
-	long level_sleep;
+	int level_sleep;
 
 	boolean FIRST = true;
 
@@ -171,44 +171,56 @@ public class MyGameGui extends JFrame implements ActionListener, MouseListener, 
 			}
 		}
 		fruitEdge();
-		
+
 		/*
 		 * Place_Mark(String id, String location)
 		 */
-		
+
 		//////////////append fruits
 		for (Fruit fruit : dg.Fruits) {
 			if (fruit.type == -1) {
 				g.setColor(Color.GRAY);
 				g.fillOval(fruit.getLocation().ix() - BIGGER, fruit.getLocation().iy() - BIGGER,
 						(int)2.5*BIGGER, (int)2.5*BIGGER);
-				if(!FIRST) this.log.Place_Mark("fruit_-1", fruit.getLocation().toString());
+				if(!FIRST) {Point3D p = fruit.getLocation();
+				swap(p.x(), p.y());
+				this.log.Place_Mark("fruit_-1", p.toString());
+				}
+
 			}
 			else if (fruit.type == 1) {
 				g.setColor(Color.YELLOW);
 				g.fillOval(fruit.getLocation().ix() - BIGGER, fruit.getLocation().iy() - BIGGER,
 						(int)2.5*BIGGER, (int)2.5*BIGGER);
-				if(!FIRST) this.log.Place_Mark("fruit_1", fruit.getLocation().toString());
+				if(!FIRST) {
+					Point3D p = fruit.getLocation();
+					swap(p.x(), p.y());
+					this.log.Place_Mark("fruit_1", p.toString());
+				}
 			}
-		}
-		
+
+		} //** for **//
+
 		if(CAN_PRINT_ROBOT) { // print the robbot after you choice about the type of game
 			//////////////append robots
 			for (Robot robot : dg.Robots) {
 				g.setColor(Color.blue);
 				g.fillOval(robot.getLocation().ix() - BIGGER, robot.getLocation().iy() - BIGGER,
 						(int)2.5*BIGGER, (int)2.5*BIGGER);
-				System.out.println("the - "+robot.getLocation().toString());
-				this.log.Place_Mark("Robot", (robot.getLocation().toString()));
+				//				System.out.println("the - "+robot.getLocation().toString());
+
+				Point3D p = robot.getLocation();
+				swap(p.x(), p.y());
+				this.log.Place_Mark("Robot", (p.toString()));
 			}
 		}
 
 	}
-
-//	private String reverse(String string) {
-//		
-//		return null;
-//	}
+	
+	
+	/////////////////////////////////////////////////////////////////
+	///////////////////////// START OF GAME /////////////////////////
+	/////////////////////////////////////////////////////////////////
 
 	/**
 	 * for starting the game:
@@ -219,16 +231,7 @@ public class MyGameGui extends JFrame implements ActionListener, MouseListener, 
 	 * in end of game we view the result of game
 	 */
 	private void start_of_game() {
-		if(AUTO) {
-			///spread the robots on server gragh
-			int pizur = dg.Vertex.size() / num_robots;
-			int stati = pizur;
-
-			for(int a = 0; a<num_robots; a++) {
-				game.addRobot((pizur-1) % dg.Vertex.size());
-				pizur += stati;
-			}
-		}
+		if(AUTO) spread(); //spread the robots on server gragh
 
 		paintRobots();
 
@@ -248,17 +251,27 @@ public class MyGameGui extends JFrame implements ActionListener, MouseListener, 
 		this.log.KML_End();
 		///////////////////end game/////////////
 		String results = game.toString();
-		
+
 		System.out.println("Game Over: "+results);
-		
+
 		game.stopGame();
+	}
+
+	private void spread() {
+		int pizur = dg.Vertex.size() / num_robots;
+		int stati = pizur;
+
+		for(int a = 0; a<num_robots; a++) {
+			game.addRobot((pizur-1) % dg.Vertex.size());
+			pizur += stati;
+		}
 	}
 
 	/**
 	 * In accordance with scenario num we change the time of thread's sleep.
 	 * @return long
 	 */
-	private long getSleep() {
+	private int getSleep() {
 		if(0 <= scenario && scenario < 3) return 80;
 		else if((3 <= scenario && scenario < 5) || (8 <= scenario && scenario < 10)) return 60;
 		else if((5 <= scenario && scenario < 7) || scenario == 19) return 50;
@@ -451,6 +464,12 @@ public class MyGameGui extends JFrame implements ActionListener, MouseListener, 
 	private void oneOfThem() {
 		if(MANU) AUTO = false;
 		if(AUTO) MANU  = false;
+	}
+	
+	private void swap(double x, double y) {
+		double tmp = x;
+		x = y;
+		y = tmp;
 	}
 
 	public void addGraph(DGraph dg1) {
