@@ -1,7 +1,5 @@
 package gameClient;
 
-//import java.util.ArrayList;
-//import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
@@ -11,9 +9,12 @@ import org.json.JSONObject;
 import Server.Game_Server;
 import Server.game_service;
 import dataStructure.DGraph;
-//import dataStructure.edge_data;
-//import dataStructure.graph;
-//import utils.Point3D;
+import dataStructure.NodeData;
+import dataStructure.edgeData;
+import dataStructure.node_data;
+import utils.Point3D;
+
+
 /**
  * This class represents a simple example for using the GameServer API:
  * the main file performs the following tasks:
@@ -36,7 +37,7 @@ import dataStructure.DGraph;
 public class Ex4_Client implements Runnable{
 	DGraph gg = new DGraph();
 	game_service game;
-	
+
 	public static void main(String[] a) {
 		Thread client = new Thread(new Ex4_Client());
 		client.start();
@@ -52,7 +53,7 @@ public class Ex4_Client implements Runnable{
 
 		String g = game.getGraph();
 		List<String> fruits = game.getFruits();
-		
+
 		gg.init(g);
 		init(game);
 
@@ -64,14 +65,15 @@ public class Ex4_Client implements Runnable{
 			line = new JSONObject(info);
 			JSONObject ttt = line.getJSONObject("GameServer");
 			num_robots = ttt.getInt("robots");	//num of robots
-			
+
+
 			addedFruits(game, gg, line);
-			
+			fruitEdge();
+
 			spread(num_robots);
 			addedRobot(game, gg, line);
-			
-			
-			
+
+
 		} catch (JSONException e1) {e1.printStackTrace();}
 
 		game.startGame();
@@ -102,6 +104,54 @@ public class Ex4_Client implements Runnable{
 		System.out.println(res);
 	}
 
+	/**
+	 * I want to know where are the fruit in which edge. 
+	 * so I have a location of all fruits, and I put in ed list
+	 * the edge has a fruit on him.
+	 * 
+	 */
+	private void fruitEdge() {
+		Iterator<Fruit> fruit = gg.Fruits.iterator();
+		while(fruit.hasNext()) {
+			Fruit a=fruit.next();
+			Point3D p = a.getLocation();
+			for (node_data nd : gg.Vertex) {
+				NodeData n = (NodeData)nd;
+
+				for (NodeData nd1 : n.outgoing) {
+					Point3D dest=	nd1.getLocation();						
+					if(check_on_line(p, n.location, dest)) {
+						if (a.type==1) {
+							if (n.getKey()< nd1.getKey()) {
+								a.ed=new edgeData(n.getKey(), nd1.getKey());
+							}}
+						if (a.type==-1) {
+							if (n.getKey()> nd1.getKey()) {
+								a.ed=new edgeData(nd1.getKey(), n.getKey());
+
+							}}
+					}
+					else continue;
+				}
+			}
+		}
+
+	}
+
+	/**
+	 * to check if a fruit on the edge
+	 * @param p
+	 * @param src
+	 * @param dest
+	 * 
+	 * @return boolean
+	 */
+	private static boolean check_on_line(Point3D p, Point3D src, Point3D dest) {
+		double e = 0.0000001;
+		if((src.distance2D(p)+p.distance2D(dest)-src.distance2D(dest)) < e) return true;
+		return false;
+	}
+
 	private void spread(int num_robots) {
 		int pizur = gg.Vertex.size() / num_robots;
 		int stati = pizur;
@@ -129,7 +179,7 @@ public class Ex4_Client implements Runnable{
 
 	private void addedRobot(game_service game, DGraph gg, JSONObject line) {
 		Iterator<String> r_iter = game.getRobots().iterator();
-		
+
 		while(r_iter.hasNext()) {
 			try {
 				line = new JSONObject(r_iter.next());
