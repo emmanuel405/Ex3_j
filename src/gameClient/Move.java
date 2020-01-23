@@ -27,13 +27,19 @@ public class Move extends Thread {
 	List<String> log;
 	game_service game;
 	DGraph gg;
-	long level;
+	int level;
 	MyGameGui gu;
 
-	public Move(game_service game, DGraph gg, MyGameGui gu, long level_sleep) {
+	public Move(game_service game, DGraph gg, MyGameGui gu, int level_sleep) {
 		this.game = game;
 		this.gg = gg;
 		this.gu = gu;
+		this.level = level_sleep;
+	}
+	
+	public Move(game_service game, DGraph gg, int level_sleep) {
+		this.game = game;
+		this.gg = gg;
 		this.level = level_sleep;
 	}
 
@@ -123,7 +129,7 @@ public class Move extends Thread {
 			for (Fruit fr : gg.Fruits) {
 				Graph_Algo gr= new Graph_Algo();
 				gr.init(this.gg);
-				double dist = gr.shortestPathDist(src, fr.ed.getSrc());///the dist to the  current fruit
+				double dist = gr.shortestPathDist(src, fr.ed.getSrc());///the dist to the current fruit
 				if (fr.withrob == -1 && dist < minpath);////the fruit not cout
 				minpath = dist;
 				this.gg.Robots.get(rid).dest = fr.ed.getSrc();///the trget of this robot
