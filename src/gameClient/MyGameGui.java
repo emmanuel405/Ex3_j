@@ -185,21 +185,13 @@ public class MyGameGui extends JFrame implements ActionListener, MouseListener, 
 				g.setColor(Color.GRAY);
 				g.fillOval(fruit.getLocation().ix() - BIGGER, fruit.getLocation().iy() - BIGGER,
 						(int)2.5*BIGGER, (int)2.5*BIGGER);
-				if(!FIRST) {Point3D p = fruit.getLocation();
-				swap(p.x(), p.y());
-				this.log.Place_Mark("fruit_-1", p.toString());
-				}
-
+				if(!FIRST) this.log.Place_Mark("fruit_-1", fruit.getLocation().toString());
 			}
 			else if (fruit.type == 1) {
 				g.setColor(Color.YELLOW);
 				g.fillOval(fruit.getLocation().ix() - BIGGER, fruit.getLocation().iy() - BIGGER,
 						(int)2.5*BIGGER, (int)2.5*BIGGER);
-				if(!FIRST) {
-					Point3D p = fruit.getLocation();
-					swap(p.x(), p.y());
-					this.log.Place_Mark("fruit_1", p.toString());
-				}
+				if(!FIRST) this.log.Place_Mark("fruit_1", fruit.getLocation().toString());
 			}
 
 		} //** for **//
@@ -210,20 +202,18 @@ public class MyGameGui extends JFrame implements ActionListener, MouseListener, 
 				g.setColor(Color.blue);
 				g.fillOval(robot.getLocation().ix() - BIGGER, robot.getLocation().iy() - BIGGER,
 						(int)2.5*BIGGER, (int)2.5*BIGGER);
-				//				System.out.println("the - "+robot.getLocation().toString());
+				 System.out.println("the - "+robot.getLocation().toString());
 
-				Point3D p = robot.getLocation();
-				swap(p.x(), p.y());
-				this.log.Place_Mark("Robot", (p.toString()));
+				this.log.Place_Mark("Robot", (robot.getLocation().toString()));
 			}
 		}
 
 	}
 
 
-	/////////////////////////////////////////////////////////////////
-	///////////////////////// START OF GAME /////////////////////////
-	/////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////
+	/////////////////////// START OF GAME ///////////////////////
+	/////////////////////////////////////////////////////////////
 
 	/**
 	 * for starting the game:
@@ -481,12 +471,6 @@ public class MyGameGui extends JFrame implements ActionListener, MouseListener, 
 	private void oneOfThem() {
 		if(MANU) AUTO = false;
 		if(AUTO) MANU  = false;
-	}
-
-	private void swap(double x, double y) {
-		double tmp = x;
-		x = y;
-		y = tmp;
 	}
 
 	public void addGraph(DGraph dg1) {
