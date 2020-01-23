@@ -35,6 +35,7 @@ public class MyGameGui extends JFrame implements ActionListener, MouseListener, 
 	public KML_Logger log; // init after choose scenario number..line 92
 	int num_robots;
 	int scenario;
+	int id;
 
 	boolean CAN_PRINT_ROBOT = false;
 	boolean AUTO = false;
@@ -84,6 +85,7 @@ public class MyGameGui extends JFrame implements ActionListener, MouseListener, 
 		case "Scenario Number":
 			NUMBER = true;
 			try {
+				putId();
 				choose_num();
 			} catch (TimeoutException e) {
 				e.printStackTrace();
@@ -117,6 +119,7 @@ public class MyGameGui extends JFrame implements ActionListener, MouseListener, 
 
 		// if is the first time do you enter here and don't choose yet a game type
 		if(FIRST) {
+			Game_Server.login(id);
 			game = Game_Server.getServer(scenario);
 			String graph_game = game.getGraph();
 			dg = new DGraph();
@@ -216,8 +219,8 @@ public class MyGameGui extends JFrame implements ActionListener, MouseListener, 
 		}
 
 	}
-	
-	
+
+
 	/////////////////////////////////////////////////////////////////
 	///////////////////////// START OF GAME /////////////////////////
 	/////////////////////////////////////////////////////////////////
@@ -237,7 +240,7 @@ public class MyGameGui extends JFrame implements ActionListener, MouseListener, 
 
 		game.startGame();
 
-		Move m = new Move(game, dg, this, level_sleep);
+		Move m = new Move(game, dg, this, scenario);
 		m.start();
 
 		while(game.isRunning()) {
@@ -249,6 +252,8 @@ public class MyGameGui extends JFrame implements ActionListener, MouseListener, 
 			}
 		}
 		this.log.KML_End();
+		String remark = this.log.toString();
+		game.sendKML(remark); // Should be your KML (will not work on case -1).
 		///////////////////end game/////////////
 		String results = game.toString();
 
@@ -258,7 +263,7 @@ public class MyGameGui extends JFrame implements ActionListener, MouseListener, 
 	}
 
 	private void spread() {
-		int pizur = dg.Vertex.size() / num_robots;
+		int pizur = dg.Vertex.size()-1 / num_robots;
 		int stati = pizur;
 
 		for(int a = 0; a<num_robots; a++) {
@@ -272,7 +277,8 @@ public class MyGameGui extends JFrame implements ActionListener, MouseListener, 
 	 * @return long
 	 */
 	private int getSleep() {
-		if(0 <= scenario && scenario < 3) return 80;
+		if(scenario == 0) return 110;
+		if(0 <= scenario && scenario < 3) return 200;
 		else if((3 <= scenario && scenario < 5) || (8 <= scenario && scenario < 10)) return 60;
 		else if((5 <= scenario && scenario < 7) || scenario == 19) return 50;
 		else if((10 <= scenario && scenario < 12) || scenario == 20) return 100;
@@ -291,7 +297,18 @@ public class MyGameGui extends JFrame implements ActionListener, MouseListener, 
 		paint(g);
 	}
 
+	private void putId() {
+		String input = JOptionPane.showInputDialog(null, "Please put yout ID here:");
+		if(input.length() != 9) putId();
+		else { 
+			try {
+				id = Integer.parseInt(input);
+			} catch(Exception e) {
+				putId();
+			}
+		}
 
+	}
 	/**
 	 * we choose a number of scenario => 0-23
 	 * else choose again.
@@ -465,7 +482,7 @@ public class MyGameGui extends JFrame implements ActionListener, MouseListener, 
 		if(MANU) AUTO = false;
 		if(AUTO) MANU  = false;
 	}
-	
+
 	private void swap(double x, double y) {
 		double tmp = x;
 		x = y;
