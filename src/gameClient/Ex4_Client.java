@@ -21,12 +21,7 @@ import org.json.JSONObject;
 import Server.Game_Server;
 
 import Server.game_service;
-import algorithms.Graph_Algo;
-import dataStructure.DGraph;
-import dataStructure.NodeData;
-import dataStructure.edgeData;
-import dataStructure.edge_data;
-import dataStructure.node_data;
+
 import oop_dataStructure.OOP_DGraph;
 
 import oop_dataStructure.oop_edge_data;
@@ -34,7 +29,6 @@ import oop_dataStructure.oop_edge_data;
 import oop_dataStructure.oop_graph;
 
 import oop_utils.OOP_Point3D;
-import utils.Point3D;
 
 /**
 
@@ -76,9 +70,6 @@ import utils.Point3D;
 
 public class Ex4_Client implements Runnable{
 
-
-
-
 	public static void main(String[] a) {
 
 		Thread client = new Thread(new Ex4_Client());
@@ -87,20 +78,13 @@ public class Ex4_Client implements Runnable{
 
 	}
 
-	static List<String> log;
-
-	private int num_robots;
-	private DGraph dg;
-
-	public Game_Server game;
-
 	
 
 	@Override
 
 	public void run() {
 
-		int scenario_num = 1; // current "stage is 9, can play[0,9], can NOT 10 or above
+		int scenario_num = 0; // current "stage is 9, can play[0,9], can NOT 10 or above
 
 		int id = 313387359;
 
@@ -108,71 +92,32 @@ public class Ex4_Client implements Runnable{
 
 		game_service game = Game_Server.getServer(scenario_num); // you have [0,23] games
 
+		
 
 		String g = game.getGraph();
 
 		List<String> fruits = game.getFruits();
 
-		 dg = new DGraph();
+		OOP_DGraph gg = new OOP_DGraph();
 
-		dg.init(g);
+		gg.init(g);
 
-/////////////////////////first push to gragh
-num_robots = 0;
-try {
-String info = game.toString();
-System.out.println(info);
-JSONObject line;
-////info of game
-line = new JSONObject(info);
-JSONObject ttt = line.getJSONObject("GameServer");
-num_robots = ttt.getInt("robots");	//num of robots
+		init(game);
 
-Iterator<String> f_iter = game.getFruits().iterator();
-while(f_iter.hasNext()) {
-	line = new JSONObject(f_iter.next());
-	JSONObject fru = line.getJSONObject("Fruit");
-	Fruit ans=new Fruit(fru.getDouble("value"),fru.getInt("type"),
-			fru.getString("pos"));
-	dg.addfruit(ans);
-}
-
-} catch (JSONException e) {e.printStackTrace();} 
-
-int pizur = dg.Vertex.size()-1 / num_robots;
-int stati = pizur;
-
-for(int a = 0; a<num_robots; a++) {
-	game.addRobot((pizur-1) % dg.Vertex.size());
-	pizur += stati;
-}
+		
 
 		game.startGame();
-		Iterator<String> r_iter = game.getRobots().iterator();
-		JSONObject line;
-		while(r_iter.hasNext()) {
-			try {
-				line = new JSONObject(r_iter.next());
-				JSONObject ro = line.getJSONObject("Robot");
-				Robot ans = new Robot(ro.getInt("id"),ro.getInt("value"),
-						ro.getInt("src"),ro.getInt("dest"),
-						ro.getInt("speed"),ro.getString("pos"));
-				dg.addrobot(ans);
-			} catch (JSONException e) {
-				e.printStackTrace();
-			}
-		}
-		fruitEdge();
 
 		int ind=0;
 
-		long dt=100;
+		long dt=200;
 
 		int jj = 0;
 
 		while(game.isRunning()) {
 
-			moveRobots(game, dg);
+			moveRobots(game, gg);
+
 			try {
 
 				List<String> stat = game.getRobots();
@@ -217,57 +162,77 @@ for(int a = 0; a<num_robots; a++) {
 
 	 * @param game
 
-	 * @param dg
+	 * @param gg
 
 	 * @param //log
 
 	 */
 
-	private  void moveRobots(game_service game, DGraph dg) {
-		///move the robots 1 step
-				log = game.move();
+	private static void moveRobots(game_service game, oop_graph gg) {
+
+		List<String> log = game.move();
+
+		ArrayList<OOP_Point3D> rs = new ArrayList<OOP_Point3D>();
+
+		List<String> fs =  game.getFruits();
+
 				if(log!=null) {
-					long t = game.timeToEnd();
-					///run on every robot and see if we need to enter new direction to robot
-					for(int i=0;i<log.size();i++) {
-						String robot_json = log.get(i);
-						try {
-							JSONObject line = new JSONObject(robot_json);
-							JSONObject ttt = line.getJSONObject("Robot");
-							int rid = ttt.getInt("id");
-							int src = ttt.getInt("src");
-							int dest = ttt.getInt("dest");
-							String pos = ttt.getString("pos");
-							String[] cord = pos.split(",");
-							Point3D ans = new Point3D(scale(Double.parseDouble(cord[0]),35.186179,35.2142,0,1000),
-									scale(Double.parseDouble(cord[1]),32.100148,32.109347,100,600));
 
-							if(dest == -1) {	///no direcrtion	
-								dest = nextNode( game,src, rid);///choose the node
-								game.chooseNextEdge(rid, dest);///sent to server
-								System.out.println("Turn to node: "+dest+"  time to end:"+(t/1000));
-								System.out.println(ttt);
-							}
-							dg.Robots.get(rid).pos = ans;
+			long t = game.timeToEnd();
 
-						}
-						catch (JSONException e) {e.printStackTrace();}
+			
+
+			for(int i=0;i<log.size();i++) {
+
+				String robot_json = log.get(i);
+
+				try {
+
+					JSONObject line = new JSONObject(robot_json);
+
+					JSONObject ttt = line.getJSONObject("Robot");
+
+					int rid = ttt.getInt("id");
+
+					int src = ttt.getInt("src");
+
+					int dest = ttt.getInt("dest");
+
+					String p = ttt.getString("pos");
+
+					OOP_Point3D pp = new OOP_Point3D(p);
+
+					rs.add(pp);
+
+					double speed =  ttt.getInt("speed");
+
+								
+
+					if(dest==-1) {			
+
+						dest = nextNode(gg, src);
+
+						game.chooseNextEdge(rid, dest);
+
+			//			System.out.println("Turn to node: "+dest+"  time to end:"+(t/1000));
+
 					}
 
-				}
+				} 
 
-	}
-	private static double scale(double data, double r_min, double r_max, 
-			double t_min, double t_max){
-		double res = ((data - r_min) / (r_max-r_min)) * (t_max - t_min) + t_min;
-		return res;
+				catch (JSONException e) {e.printStackTrace();}
+
+			}
+
+		}
+
 	}
 
 	/**
 
 	 * a very simple random walk implementation!
 
-	 * @param src2
+	 * @param g
 
 	 * @param src
 
@@ -275,165 +240,28 @@ for(int a = 0; a<num_robots; a++) {
 
 	 */
 
-	public int nextNode(game_service game2,int src, int rid) throws JSONException {
-		this.dg.Robots.get(rid).src = src;
-		//create the targets list at first iterate
-		if (null == this.dg.Robots.get(rid).path) {
-			double minpath=Integer.MAX_VALUE;///the dist to the fruit
-			for (Fruit fr : dg.Fruits) {
-				Graph_Algo gr= new Graph_Algo();
-				gr.init(this.dg);
+	private static int nextNode(oop_graph g, int src) {
 
-				double dist = gr.shortestPathDist(src, fr.ed.getSrc());///the dist to the current fruit
-				if (fr.withrob == -1 && dist < minpath);////the fruit not cout
-				minpath = dist;
-				this.dg.Robots.get(rid).dest = fr.ed.getSrc();///the trget of this robot
-			}
-			this.dg.Robots.get(rid).path = this.dg.getPath(this.dg.getNode(this.dg.Robots.get(rid).src),
-					this.dg.getNode(this.dg.Robots.get(rid).dest));///the way of this robot
-			return this.dg.Robots.get(rid).path.get(0).getKey();///finish
+		int ans = -1;
 
-		}
-		////////////the list exist
-		else if (dg.Robots.get(rid).path.size()>0){///thers more then 1 target
-			dg.Robots.get(rid).path.remove(0);
+		Collection<oop_edge_data> ee = g.getE(src);
 
-			////////the list is empty after remove beacuse the fruit has been eaten
-			if (dg.Robots.get(rid).path.size()==0) {
-				dg.Fruits=new ArrayList<Fruit>();				
-				//reset fruit in gragh
-				//boolean flag=true;
-				Iterator<String> f_iter = game2.getFruits().iterator();
-				while(f_iter.hasNext()) {
-					JSONObject line = new JSONObject(f_iter.next());
-					JSONObject fru = line.getJSONObject("Fruit");
-					Fruit ans=new Fruit(fru.getDouble("value"),fru.getInt("type"),fru.getString("pos"));
+		Iterator<oop_edge_data> itr = ee.iterator();
 
-					dg.addfruit(ans);
-				}
-				Iterator<Fruit> fruit = dg.Fruits.iterator();
-				while(fruit.hasNext()) {
-					Fruit a=fruit.next();
-					Point3D p = a.getLocation();
-					for (node_data nd : dg.Vertex) {
-						NodeData n = (NodeData)nd;
+		int s = ee.size();
 
-						for (NodeData nd1 : n.outgoing) {
-							Point3D dest=	nd1.getLocation();						
-							if(check_on_line(p, n.location, dest)) {
-								if (a.type==1) {
-									if (n.getKey()< nd1.getKey()) {
-										a.ed=new edgeData(n.getKey(), nd1.getKey());
-									}}
-								if (a.type==-1) {
-									if (n.getKey()> nd1.getKey()) {
-										a.ed=new edgeData(nd1.getKey(), n.getKey());
+		int r = (int)(Math.random()*s);
 
-									}}
-							}
-							else continue;
-						}
-					}
-				}
+		int i=0;
 
-				double minpath = Integer.MAX_VALUE;///the dist to the fruit
+		while(i<r) {itr.next();i++;}
 
-				for (Fruit fr : dg.Fruits) {
-					Graph_Algo gr= new Graph_Algo();
-					gr.init(dg);
-					double dist=gr.shortestPathDist(src, fr.ed.getSrc());///the dist to the  current fruit
-					if (fr.withrob==-1&&dist<minpath) {////the fruit not cout
-						minpath=dist;
-						this.dg.Robots.get(rid).dest=fr.ed.getSrc();///the trget of this robot
-					}
-					if (!(this.dg.Robots.get(rid).dest==this.dg.Robots.get(rid).src)) {
-						this.dg.Robots.get(rid).path=dg.getPath(this.dg.getNode(this.dg.Robots.get(rid).src),
-								this.dg.getNode(this.dg.Robots.get(rid).dest));///the way of this robot
-					}
-					else {
-						this.dg.Robots.get(rid).path=dg.getPath(this.dg.getNode(this.dg.Robots.get(rid).src),
-								dg.getNode(fr.ed.getDest()));
-						this.dg.Robots.get(rid).dest=fr.ed.getDest();
-					}
+		ans = itr.next().getDest();
 
-				}
-				return this.dg.Robots.get(rid).path.get(0).getKey();
-
-			}
-			///////////////the list not empty
-			return this.dg.Robots.get(rid).path.get(0).getKey();
-
-		}
-		if (this.dg.Robots.get(rid).path.size()==0) {
-			dg.Fruits=new ArrayList<Fruit>();				
-			//reset fruit in gragh
-			//boolean flag=true;
-			Iterator<String> f_iter = game2.getFruits().iterator();
-			while(f_iter.hasNext()) {
-				JSONObject line = new JSONObject(f_iter.next());
-				JSONObject fru = line.getJSONObject("Fruit");
-				Fruit ans=new Fruit(fru.getDouble("value"),fru.getInt("type"),fru.getString("pos"));
-
-				dg.addfruit(ans);
-			}
-			Iterator<Fruit> fruit = dg.Fruits.iterator();
-			while(fruit.hasNext()) {
-				Fruit a=fruit.next();
-				Point3D p = a.getLocation();
-				for (node_data nd : dg.Vertex) {
-					NodeData n = (NodeData)nd;
-
-					for (NodeData nd1 : n.outgoing) {
-						Point3D dest=	nd1.getLocation();						
-						if(check_on_line(p, n.location, dest)) {
-							if (a.type==1) {
-								if (n.getKey()< nd1.getKey()) {
-									a.ed=new edgeData(n.getKey(), nd1.getKey());
-								}}
-							if (a.type==-1) {
-								if (n.getKey()> nd1.getKey()) {
-									a.ed=new edgeData(nd1.getKey(), n.getKey());
-
-								}}
-						}
-						else continue;
-					}
-				}
-			}
-
-			double minpath = Integer.MAX_VALUE;///the dist to the fruit
-
-			for (Fruit fr : dg.Fruits) {
-				Graph_Algo gr= new Graph_Algo();
-				gr.init(dg);
-				double dist=gr.shortestPathDist(src, fr.ed.getSrc());///the dist to the  current fruit
-				if (fr.withrob==-1&&dist<minpath) {////the fruit not cout
-					minpath=dist;
-					this.dg.Robots.get(rid).dest=fr.ed.getSrc();///the trget of this robot
-				}
-				if (!(this.dg.Robots.get(rid).dest==this.dg.Robots.get(rid).src)) {
-					this.dg.Robots.get(rid).path=dg.getPath(this.dg.getNode(this.dg.Robots.get(rid).src),
-							this.dg.getNode(this.dg.Robots.get(rid).dest));///the way of this robot
-				}
-				else {
-					this.dg.Robots.get(rid).path=dg.getPath(this.dg.getNode(this.dg.Robots.get(rid).src),
-							dg.getNode(fr.ed.getDest()));
-					this.dg.Robots.get(rid).dest=fr.ed.getDest();
-				}
-
-			}
-			this.dg.Robots.get(rid).path.get(0).getKey();
-
-		}
-		return this.dg.Robots.get(rid).path.get(0).getKey();
-
+		return ans;
 
 	}
-	private boolean check_on_line(Point3D p, Point3D src, Point3D dest) {
-		double e = 0.0000001;
-		if((src.distance2D(p)+p.distance2D(dest)-src.distance2D(dest)) < e) return true;
-		return false;
-	}
+
 	private void init(game_service game) {
 
 		
@@ -483,31 +311,5 @@ for(int a = 0; a<num_robots; a++) {
 		
 
 	}
-	private void fruitEdge() {
-		Iterator<Fruit> fruit = dg.Fruits.iterator();
-		while(fruit.hasNext()) {
-			Fruit a=fruit.next();
-			Point3D p = a.getLocation();
-			for (node_data nd : dg.Vertex) {
-				NodeData n = (NodeData)nd;
 
-				for (NodeData nd1 : n.outgoing) {
-					Point3D dest=	nd1.getLocation();						
-					if(check_on_line(p, n.location, dest)) {
-						if (a.type==1) {
-							if (n.getKey()< nd1.getKey()) {
-								a.ed=new edgeData(n.getKey(), nd1.getKey());
-							}}
-						if (a.type==-1) {
-							if (n.getKey()> nd1.getKey()) {
-								a.ed=new edgeData(nd1.getKey(), n.getKey());
-
-							}}
-					}
-					else continue;
-				}
-			}
-		}
-
-	}
 }
