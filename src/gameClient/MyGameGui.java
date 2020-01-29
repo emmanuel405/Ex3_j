@@ -85,7 +85,7 @@ public class MyGameGui extends JFrame implements ActionListener, MouseListener, 
 		case "Scenario Number":
 			NUMBER = true;
 			try {
-				putId();
+//				putId();
 				choose_num();
 			} catch (TimeoutException e) {
 				e.printStackTrace();
@@ -123,10 +123,10 @@ public class MyGameGui extends JFrame implements ActionListener, MouseListener, 
 			game = Game_Server.getServer(scenario);
 			String graph_game = game.getGraph();
 			dg = new DGraph();
+			
 			/////////////////////////first push to gragh
 			dg.init(graph_game);
 			num_robots = 0;
-
 			try {
 				String info = game.toString();
 				System.out.println(info);
@@ -202,7 +202,7 @@ public class MyGameGui extends JFrame implements ActionListener, MouseListener, 
 				g.setColor(Color.blue);
 				g.fillOval(robot.getLocation().ix() - BIGGER, robot.getLocation().iy() - BIGGER,
 						(int)2.5*BIGGER, (int)2.5*BIGGER);
-				 System.out.println("the - "+robot.getLocation().toString());
+//				 System.out.println("the - "+robot.getLocation().toString());
 
 				this.log.Place_Mark("Robot", (robot.getLocation().toString()));
 			}

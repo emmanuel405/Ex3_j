@@ -48,7 +48,7 @@ public class Move extends Thread {
 		while(true) {
 			moveRobots(this.game, this.gg);
 			try {
-				sleep(getSleep());
+				sleep(100);
 			} catch (InterruptedException e) {e.printStackTrace();}
 		}
 	}
@@ -109,7 +109,7 @@ public class Move extends Thread {
 		double res = ((data - r_min) / (r_max-r_min)) * (t_max - t_min) + t_min;
 		return res;
 	}
-
+	
 	/**
 	 * 
 	 * @param g
@@ -204,6 +204,67 @@ public class Move extends Thread {
 			}
 			///////////////the list not empty
 			return this.gg.Robots.get(rid).path.get(0).getKey();
+
+		}
+		if (this.gg.Robots.get(rid).path.size()==0) {
+			gg.Fruits=new ArrayList<Fruit>();				
+			//reset fruit in gragh
+			//boolean flag=true;
+			Iterator<String> f_iter = game.getFruits().iterator();
+			while(f_iter.hasNext()) {
+				JSONObject line = new JSONObject(f_iter.next());
+				JSONObject fru = line.getJSONObject("Fruit");
+				Fruit ans=new Fruit(fru.getDouble("value"),fru.getInt("type"),fru.getString("pos"));
+
+				gg.addfruit(ans);
+			}
+			Iterator<Fruit> fruit = gg.Fruits.iterator();
+			while(fruit.hasNext()) {
+				Fruit a=fruit.next();
+				Point3D p = a.getLocation();
+				for (node_data nd : gg.Vertex) {
+					NodeData n = (NodeData)nd;
+
+					for (NodeData nd1 : n.outgoing) {
+						Point3D dest=	nd1.getLocation();						
+						if(check_on_line(p, n.location, dest)) {
+							if (a.type==1) {
+								if (n.getKey()< nd1.getKey()) {
+									a.ed=new edgeData(n.getKey(), nd1.getKey());
+								}}
+							if (a.type==-1) {
+								if (n.getKey()> nd1.getKey()) {
+									a.ed=new edgeData(nd1.getKey(), n.getKey());
+
+								}}
+						}
+						else continue;
+					}
+				}
+			}
+
+			double minpath = Integer.MAX_VALUE;///the dist to the fruit
+
+			for (Fruit fr : gg.Fruits) {
+				Graph_Algo gr= new Graph_Algo();
+				gr.init(gg);
+				double dist=gr.shortestPathDist(src, fr.ed.getSrc());///the dist to the  current fruit
+				if (fr.withrob==-1&&dist<minpath) {////the fruit not cout
+					minpath=dist;
+					this.gg.Robots.get(rid).dest=fr.ed.getSrc();///the trget of this robot
+				}
+				if (!(this.gg.Robots.get(rid).dest==this.gg.Robots.get(rid).src)) {
+					this.gg.Robots.get(rid).path=gg.getPath(this.gg.getNode(this.gg.Robots.get(rid).src),
+							this.gg.getNode(this.gg.Robots.get(rid).dest));///the way of this robot
+				}
+				else {
+					this.gg.Robots.get(rid).path=gg.getPath(this.gg.getNode(this.gg.Robots.get(rid).src),
+							gg.getNode(fr.ed.getDest()));
+					this.gg.Robots.get(rid).dest=fr.ed.getDest();
+				}
+
+			}
+			this.gg.Robots.get(rid).path.get(0).getKey();
 
 		}
 		return this.gg.Robots.get(rid).path.get(0).getKey();

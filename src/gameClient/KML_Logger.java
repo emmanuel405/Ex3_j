@@ -99,6 +99,10 @@ class KML_Logger {
      */
     void Place_Mark(String id, String location) {
         LocalDateTime time = LocalDateTime.now();
+        String[]split =location.split(",");
+        Double x=re_scale(Double.parseDouble(split[0]),35.186179,35.2142,0,1000);
+        Double y=re_scale(Double.parseDouble(split[1]),32.100148,32.109347,100,600);
+        location=""+(-1)*x+","+(-1)*y;
         kmltxt.append(
         		 "<Placemark>\n"
         		+ 	"<TimeStamp>\n"
@@ -146,5 +150,9 @@ class KML_Logger {
             return false;
         }
     }
-
+    private static double re_scale(double res, double r_min, double r_max, 
+			double t_min, double t_max){
+		double data = res*((r_max-r_min)/(t_max - t_min) )-r_min;
+		return data;
+	}
 }
